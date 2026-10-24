@@ -31,7 +31,7 @@
 
 # Website Content
 ## Navbar:
-* 左側：放 Logo A，alttext: 中華民國臺灣大學生機農機系友會（點選以後回到首頁）
+* 左側：放 Logo 文字標（`assets/Logo/Logo-Text.png`），alttext: 中華民國臺灣大學生機農機系友會（點選以後回到首頁）
 * 右側
     * 活動公告
     * 系友演講

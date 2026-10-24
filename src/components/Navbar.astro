@@ -7,7 +7,7 @@ const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
 <header class="nav">
   <div class="nav__inner container">
     <a class="nav__logo" href="/">
-      <img src="/images/logo-a-nav.webp" width="180" height="140" alt={SITE_NAME} />
+      <img src="/images/logo-text.webp" width="603" height="72" alt={SITE_NAME} />
     </a>
 
     <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-menu">
@@ -70,7 +70,7 @@ const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
   }
   .nav__logo {
     display: block;
-    height: 52px;
+    height: 30px;
   }
   .nav__logo img {
     height: 100%;
@@ -121,6 +121,9 @@ const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
   }
 
   @media (max-width: 860px) {
+    .nav__logo {
+      height: 26px;
+    }
     .nav__toggle {
       display: grid;
       place-items: center;
