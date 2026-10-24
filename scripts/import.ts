@@ -1,8 +1,10 @@
 /**
  * 將 assets/initial_data（scripts/scrape.ts 產生）與 assets/商品贊助 匯入 D1 + R2。
  *
- *   pixi run bun scripts/import.ts            # 匯入本地開發環境（.wrangler/state）
- *   pixi run bun scripts/import.ts --remote   # 匯入正式環境（需先 wrangler login 並建立 D1/R2）
+ *   pixi run import-local    # 匯入本地開發環境（.wrangler/state）
+ *   pixi run import-remote   # 匯入正式環境（需先 wrangler login 並建立 D1/R2）
+ *
+ * 以 Node（tsx）執行：wrangler 的 remote bindings 無法在 Bun 底下運作。
  *
  * 以 source_url（商品以名稱）去重，可重複執行；已匯入的項目會略過。
  * 圖片會轉成 WebP：文章內圖片最長邊 1600px、相簿大圖 2400px + 縮圖 600px、商品圖 1200px。
@@ -16,7 +18,7 @@ import { getPlatformProxy } from 'wrangler';
 import * as schema from '../src/db/schema';
 import type { Manifest } from './scrape';
 
-const ROOT = path.resolve(import.meta.dir, '..');
+const ROOT = path.resolve(import.meta.dirname, '..');
 const DATA = path.join(ROOT, 'assets/initial_data');
 const PRODUCTS_DIR = path.join(ROOT, 'assets/商品贊助');
 const REMOTE = process.argv.includes('--remote');

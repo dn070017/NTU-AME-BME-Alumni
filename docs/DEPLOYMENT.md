@@ -55,39 +55,77 @@ pixi run bun run db:migrate:remote
 pixi run deploy
 ```
 
-完成後會顯示 `https://ntu-ame-bme-alumni.<帳號>.workers.dev` 網址。此時前台可瀏覽，**後台尚無法使用**（第 7 步設定 Access 後才能登入）。
+完成後會顯示 `https://ntu-ame-bme-alumni.<帳號>.workers.dev` 網址。此時前台可瀏覽，**後台尚無法使用**（需完成第 6、7 步，綁定網域並設定 Access 後才能登入）。
 
-### 6. 綁定自訂網域（建議）
+### 6. 綁定自訂網域（選擇性）
 
 Cloudflare 後台 → Workers & Pages → `ntu-ame-bme-alumni` → Settings → Domains & Routes → Add → Custom Domain，輸入例如 `alumni.example.org`。
 
 - 網域的 DNS 必須由 Cloudflare 代管（該網域需加入同一個 Cloudflare 帳號）。
-- 若使用的是學校網域（例如 `*.ntu.edu.tw`）而 DNS 不在 Cloudflare，需另外與網管討論；在此之前可先使用 `workers.dev` 網址。
+- 若使用的是學校網域（例如 `*.ntu.edu.tw`）而 DNS 不在 Cloudflare，需另外與網管討論。
+- 不綁自訂網域也可以：直接使用 `https://ntu-ame-bme-alumni.<帳號>.workers.dev`，第 7 步的 Access 同樣能只保護後台路徑（已實測）。
 
 綁定後請一併更新：
 
 - `astro.config.mjs` 的 `site`（目前是 `https://example.com`）。
-- 建議在 `wrangler.jsonc` 加上 `"workers_dev": false`，關閉 `workers.dev` 網址，避免同一網站有兩個入口。
+- 若 Access 只設定了自訂網域，建議在 `wrangler.jsonc` 加上 `"workers_dev": false` 關閉 `workers.dev` 網址，避免同一網站有兩個入口（未受 Access 保護的入口，後台會一律回傳 403）。只在 Cloudflare 後台按 Disable 沒用，下次部署會被設定檔重新開啟。
 
 修改後重新執行 `pixi run deploy`。
 
 ### 7. 設定後台登入（Cloudflare Access）
 
-1. Cloudflare 後台 → **Zero Trust**（第一次進入需選擇團隊名稱，例如 `ntu-bime-alumni`，並選 Free 方案）。
-2. Access → Applications → **Add an application** → **Self-hosted**。
-3. Application 設定：
-   - Name：`系友會後台`
-   - Session duration：例如 `24 hours`
-   - Public hostname：新增 **兩筆**，網域填第 6 步的自訂網域（未綁網域則填 workers.dev 網址）
-     - Path：`admin*`
-     - Path：`api/admin*`
-4. Policy：
-   - Action：**Allow**
-   - Include → **Emails**：填入可管理網站的管理者 email（之後可隨時增減）
-   - 登入方式預設為 One-time PIN（寄驗證碼到 email），不需另外設定。
-5. 儲存後，在 Application 的 Overview 頁複製 **Application Audience (AUD) Tag**。
-6. 團隊網域可在 Zero Trust → Settings → Custom Pages（或 Team domain）看到，格式為 `https://<團隊名稱>.cloudflareaccess.com`。
-7. 填入 `wrangler.jsonc`：
+後台（`/admin`）與後台 API（`/api/admin`）由 Cloudflare Access 保護：管理者輸入 email → 收到 6 位數驗證碼 → 填入後才能進入。前台頁面不受影響。
+
+> Cloudflare 後台介面時常改版，以下選單名稱以 2026 年 10 月的官方文件為準；若找不到，可在 Zero Trust 後台左上角搜尋欄輸入關鍵字。
+
+#### 7-1. 啟用 Zero Trust（第一次才需要）
+
+1. 登入 Cloudflare 後台，左側選單點 **Zero Trust**。
+2. 設定 **Team name**（團隊名稱）：例如 `ntu-bime-alumni`。這會成為登入頁網址 `https://ntu-bime-alumni.cloudflareaccess.com`，之後要填進設定檔，請記下來。
+3. 選擇方案 **Zero Trust Free**（50 位使用者以內免費）。此步驟需填付款資訊，但免費方案不會收費。
+
+之後可在 **Zero Trust → Settings** 查看團隊名稱。
+
+#### 7-2. 新增「Email 驗證碼」登入方式
+
+新的 Zero Trust 預設**沒有**啟用 email 驗證碼，需手動加入：
+
+1. **Zero Trust → Integrations → Identity providers**。
+2. 在 **Your identity providers** 點 **Add new identity provider**。
+3. 選 **One-time PIN**，儲存。
+
+> 預設的 Cloudflare 登入方式要求管理者擁有 Cloudflare 帳號，不適合一般系友；建議只用 One-time PIN。
+
+#### 7-3. 建立 Access 應用程式
+
+1. **Zero Trust → Access controls → Applications** → **Create new application**。
+2. 選 **Self-hosted and private**。
+3. **Application name**：`系友會後台`。
+4. 點 **Add public hostname**，新增**兩筆**：
+
+   | Subdomain | Domain | Path |
+   |---|---|---|
+   | 依你的網址填（例如 `alumni`；若網址就是根網域則留空） | 從下拉選單選你的網域 | `admin` |
+   | 同上 | 同上 | `api/admin` |
+
+   使用 `workers.dev` 網址時，hostname 填 `ntu-ame-bme-alumni.<帳號>.workers.dev`，Path 同樣是 `admin` 與 `api/admin`。新版介面在 Self-hosted and private 之後會先詢問目的地類型（Private destination／Workers／Public DNS／Service auth）；自訂網域選 **Public DNS**。
+
+   Path 會一併保護其下所有子路徑（例如 `/admin/gallery/3`）。**不要**保護整個網域，否則一般訪客也會被要求登入。
+
+5. **Access policies**：點新增 policy（或 **Create new policy**）：
+   - **Policy name**：`系友會管理者`
+   - **Action**：**Allow**
+   - **Include** → 選擇器選 **Emails** → 逐一填入管理者的 email
+   - （可選）若管理者都使用同一個網域的信箱，也可用 **Emails ending in**，例如 `@ntu.edu.tw`；但這會讓所有該網域的人都能登入，通常不建議。
+6. **Login methods**：只勾選 **One-time PIN**，並開啟 **Apply instant authentication**（只有一種登入方式時，直接跳到輸入 email 的畫面）。
+7. **Session Duration**：`24 hours`（登入後 24 小時內不需再次驗證，可依需求調整）。
+8. 點 **Create**。
+
+#### 7-4. 取得設定值並填入網站
+
+1. 回到 **Access controls → Applications**，在「系友會後台」點 **Configure**。
+2. 在 **Additional settings**（或 Overview）找到 **Application Audience (AUD) Tag**，複製（一長串英數字）。
+3. 填入 `wrangler.jsonc`：
 
    ```jsonc
    "vars": {
@@ -96,11 +134,29 @@ Cloudflare 後台 → Workers & Pages → `ntu-ame-bme-alumni` → Settings → 
    }
    ```
 
-8. 重新部署：`pixi run deploy`。
+   - `CF_ACCESS_TEAM_DOMAIN` 要包含 `https://`，結尾**不要**加 `/`。
+   - 這兩個值不是密碼，放在設定檔、commit 進 git 都沒問題。
 
-驗證：以無痕視窗開啟 `https://<網域>/admin`，應先出現 Cloudflare Access 的 email 驗證頁，輸入名單內的 email 並填入驗證碼後進入後台，右上角顯示登入的 email。
+4. 重新部署：`pixi run deploy`。
 
-> 網站程式會再驗證一次 Access 簽發的 JWT（`src/lib/auth.ts`）。若 `CF_ACCESS_*` 未設定或有誤，後台一律回傳 403，不會被未登入者存取。
+#### 7-5. 驗證
+
+用瀏覽器的**無痕視窗**依序確認：
+
+| 測試 | 預期結果 |
+|---|---|
+| 開啟 `https://<網域>/` | 正常顯示首頁，不需登入 |
+| 開啟 `https://<網域>/admin` | 出現 Cloudflare 的 email 輸入頁 |
+| 輸入**名單內**的 email，收信填入驗證碼 | 進入後台，右上角顯示該 email |
+| 另開無痕視窗，輸入**名單外**的 email | 收不到驗證碼或顯示無權限，無法進入 |
+
+若登入後後台顯示「需要登入才能使用後台」（403），通常是 `CF_ACCESS_TEAM_DOMAIN` 或 `CF_ACCESS_AUD` 填錯；可執行 `pixi run bunx wrangler tail` 查看錯誤訊息（會出現「Access JWT 驗證失敗」或「Cloudflare Access 尚未設定」）。
+
+#### 7-6. 日後管理管理者名單
+
+**Zero Trust → Access controls → Policies**（或從應用程式的 Policies 分頁）→ 編輯「系友會管理者」→ 增刪 Emails。儲存後立即生效，**不需要**修改程式或重新部署。
+
+> 網站程式會再驗證一次 Access 簽發的 JWT（`src/lib/auth.ts`），即使有人繞過 Access 直接連線，未持有有效登入憑證也無法使用後台。
 
 ### 8. 匯入既有內容（選擇性）
 

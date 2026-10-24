@@ -11,8 +11,9 @@ dev = "bun run dev"
 build = "bun run build"
 preview = "bun run preview"
 scrape = "bun scripts/scrape.ts"
-import-local = "bun scripts/import.ts"
-import-remote = "bun scripts/import.ts --remote"
+# 匯入需用 Node 執行：wrangler 的 remote bindings 不支援 Bun
+import-local = "node --import tsx scripts/import.ts"
+import-remote = "node --import tsx scripts/import.ts --remote"
 deploy = "bun run deploy"
 
 [dependencies]
