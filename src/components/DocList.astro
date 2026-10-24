@@ -1,0 +1,105 @@
+---
+import { and, desc, eq } from 'drizzle-orm';
+import Base from '../layouts/Base.astro';
+import PageHeader from './PageHeader.astro';
+import { db, schema } from '../db';
+import { displayDate, fileSize, isoDate } from '../lib/format';
+import { DOC_SECTIONS, type DocSection } from '../lib/sections';
+
+interface Props {
+  section: DocSection;
+}
+
+const { section } = Astro.props;
+const { type, label, eyebrow } = DOC_SECTIONS[section];
+
+const docs = await db
+  .select({
+    id: schema.documents.id,
+    title: schema.documents.title,
+    pdfSize: schema.documents.pdfSize,
+    publishedAt: schema.documents.publishedAt,
+  })
+  .from(schema.documents)
+  .where(and(eq(schema.documents.type, type), eq(schema.documents.published, true)))
+  .orderBy(desc(schema.documents.publishedAt), desc(schema.documents.id));
+---
+<Base title={label}>
+  <PageHeader eyebrow={eyebrow} title={label} />
+  <section class="container list">
+    {docs.length === 0 ? (
+      <p class="list__empty">目前尚無{label}。</p>
+    ) : (
+      <ul class="docs">
+        {docs.map((d) => (
+          <li>
+            <a class="doc" href={`/${section}/${d.id}`}>
+              <time class="doc__date" datetime={isoDate(d.publishedAt)}>{displayDate(d.publishedAt)}</time>
+              <span class="doc__title">{d.title}</span>
+              <span class="doc__meta">PDF{d.pdfSize ? ` · ${fileSize(d.pdfSize)}` : ''}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
+</Base>
+
+<style>
+  .list {
+    padding: var(--space-8) 0 var(--space-16);
+  }
+  .list__empty {
+    padding: var(--space-12) 0;
+    color: var(--c-ink-soft);
+  }
+  .docs {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .docs li {
+    border-bottom: 1px solid var(--c-line);
+  }
+  .doc {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr) auto;
+    gap: var(--space-8);
+    align-items: baseline;
+    padding: var(--space-6) 0;
+    color: var(--c-ink);
+    text-decoration: none;
+  }
+  .doc__date {
+    color: var(--c-ink-soft);
+    font-size: var(--fs-sm);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+  }
+  .doc__title {
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    transition: color 0.2s var(--ease);
+  }
+  .doc__meta {
+    padding: 0.05em 0.7em;
+    border: 1px solid var(--c-line);
+    border-radius: 999px;
+    color: var(--c-ink-soft);
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+  }
+  .doc:hover .doc__title {
+    color: var(--c-slate-ink);
+  }
+  @media (max-width: 720px) {
+    .doc {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--space-1) var(--space-4);
+      padding: var(--space-4) 0;
+    }
+    .doc__date {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

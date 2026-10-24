@@ -1,0 +1,615 @@
+---
+import Base from '../layouts/Base.astro';
+
+const GENERATIONS = [
+  { ver: '1.0', zh: '農業工學', en: 'Agricultural Engineering' },
+  { ver: '2.0', zh: '農業機械', en: 'Agricultural Machinery' },
+  { ver: '3.0', zh: '生物產業機電', en: 'Bio-industrial Mechatronics' },
+  { ver: '4.0', zh: '生物機電', en: 'Biomechatronics' },
+];
+
+const MISSIONS = [
+  { text: '增進系友與母系之聯繫、互助與交流', peg: 'coral' },
+  { text: '加強學術研究及實務發展', peg: 'mustard' },
+  { text: '定期召開系友大會，協辦各屆畢業生聚會', peg: 'sage' },
+  { text: '回饋社會', peg: 'slate' },
+];
+
+const BANK = [
+  { label: '戶名', value: '中華民國臺灣大學生機農機系友會' },
+  { label: '銀行', value: '玉山銀行城東分行（代碼 808）' },
+  { label: '存戶帳號', value: '0048-940-019374', copy: true },
+  { label: '外幣帳戶', value: '048-879-407011', copy: true },
+];
+
+const SECTIONS = [
+  { id: 'department', label: '生物機電工程學系' },
+  { id: 'association', label: '系友會' },
+  { id: 'donate', label: '捐款資訊' },
+  { id: 'contact', label: '聯絡資訊' },
+];
+---
+<Base snap>
+  <nav class="dots" aria-label="首頁區塊">
+    {SECTIONS.map((s) => (
+      <a href={`#${s.id}`} data-dot={s.id}><span class="visually-hidden">{s.label}</span></a>
+    ))}
+  </nav>
+
+  <!-- 區塊一：系所（靠左） -->
+  <section id="department" class="panel panel--left">
+    <div class="panel__inner container">
+      <div class="panel__text" data-reveal>
+        <span class="eyebrow">Department of Biomechatronics Engineering, NTU</span>
+        <h1 class="panel__title">國立臺灣大學<br />生物機電工程學系</h1>
+        <div class="prose">
+          <p>
+            在跨領域農業與生物工程教育發展上，本系係從初期以農業工學（Agricultural Engineering）為核心的教學設計、逐步經歷整合機械工程與農業生產應用的農業機械工程（Agricultural Machinery）課程、至以「機電為體、生物為用」兼具自動化與產業化特色的生物產業機電工程（Bio-industrial Mechatronics Engineering）學系教育，然後發展至今涵蓋工業4.0與智慧農業元素之第四代生物機電工程學（Biomechatronics Engineering）教育。
+          </p>
+          <p>
+            第四代生機教育發展係基於生物產業機電工程學系時期深厚課程基礎及本系近年在精準農業（如植物工廠、無線網路監控）、智慧機電（如仿生機器人）與新興生醫工程（如生物晶片、生物資訊）應用領域的研發經驗與成果，同時整合感測、AI與IoT技術及本系參與推動智慧農業計畫（農業4.0）發展經歷。此一發展，係本系沿著過去90年從農業工程化（1.0）、農業機械化（2.0）到生物產業自動化（3.0）的教育軌跡順勢渠成。
+          </p>
+          <p>
+            本系於108學年啟用新系名後，已正式推動整合「機械系統」、「機電控制」、「人工智慧」與「生物程序」之生物機電系統智能化（生機4.0）教育，培育智慧機械、物聯網、新農業、生物醫學、綠能科技與循環經濟等新產業發展所需研發領導人才。
+          </p>
+        </div>
+      </div>
+
+      <aside class="panel__aside" data-reveal style="--reveal-delay: 0.15s">
+        <div class="logos">
+          <img src="/images/logo-ntu.webp" width="371" height="371" alt="國立臺灣大學" />
+          <img src="/images/logo-ntu-bme.webp" width="385" height="400" alt="臺大生物機電工程學系 NTU BME" />
+        </div>
+        <ol class="gens" aria-label="系名沿革">
+          {GENERATIONS.map((g, i) => (
+            <li class:list={['gens__item', { 'is-current': i === GENERATIONS.length - 1 }]}>
+              <span class="gens__ver">{g.ver}</span>
+              <span class="gens__zh">{g.zh}</span>
+              <span class="gens__en">{g.en}</span>
+            </li>
+          ))}
+        </ol>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 區塊二：系友會（文字靠右，左側 2x2 卡片） -->
+  <section id="association" class="panel panel--right">
+    <div class="panel__inner container">
+      <div class="panel__text panel__text--end" data-reveal>
+        <img class="assoc-logo" src="/images/logo-b.webp" width="718" height="720" alt="" />
+        <span class="eyebrow">NTU AME · BME Alumni Association</span>
+        <h2 class="panel__title">中華民國臺灣大學<br />生機農機系友會</h2>
+        <p>
+          中華民國臺灣大學生機農機系友會為依法設立、非以營利為之公益性社會團體，以整合各地區系友力量，促進系友進行事業合作與文化交流，透過互助精神，凝聚向心力，推展學術及母系發展，進而回饋母校及社會為宗旨。
+        </p>
+        <div class="actions">
+          <a class="btn" href="/files/charter.pdf" target="_blank" rel="noopener">閱讀完整章程（PDF）</a>
+          <a class="btn btn--solid" href="https://a.ecpay.tw/aSDD" target="_blank" rel="noopener">繳交系友會會費</a>
+        </div>
+      </div>
+
+      <div class="panel__aside" data-reveal style="--reveal-delay: 0.15s">
+        <h3 class="eyebrow missions__label">系友會宗旨</h3>
+        <div class="missions" role="list">
+          {[MISSIONS.slice(0, 2), MISSIONS.slice(2)].map((row) => (
+            <div class="missions__row">
+              {row.map((m) => (
+                <div class="mission" role="listitem" data-peg={m.peg}>
+                  <span class="mission__peg" aria-hidden="true"></span>
+                  <p>{m.text}</p>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 區塊三：捐款（靠左） -->
+  <section id="donate" class="panel panel--left">
+    <div class="panel__inner container">
+      <div class="panel__text" data-reveal>
+        <span class="eyebrow">Donate</span>
+        <h2 class="panel__title">捐款資訊</h2>
+        <p>您的捐款將用於系友活動、學術交流與母系發展。可選擇信用卡線上捐款，或以匯款、轉帳方式捐款。</p>
+
+        <div class="donate-online">
+          <h3 class="donate__h">信用卡捐款</h3>
+          <p class="donate__note">透過綠界支付，無須手續費。</p>
+          <a class="btn btn--solid" href="https://cart.cashier.ecpay.com.tw/qp/xqXC" target="_blank" rel="noopener">前往信用卡捐款</a>
+        </div>
+      </div>
+
+      <div class="panel__aside" data-reveal style="--reveal-delay: 0.15s">
+        <div class="bank">
+          <h3 class="donate__h">匯款或轉帳</h3>
+          <dl class="bank__list">
+            {BANK.map((b) => (
+              <div class="bank__row">
+                <dt>{b.label}</dt>
+                <dd>
+                  <span class:list={['bank__value', { 'bank__value--num': b.copy }]}>{b.value}</span>
+                  {b.copy && (
+                    <button class="bank__copy" type="button" data-copy={b.value.replace(/-/g, '')}>
+                      複製
+                    </button>
+                  )}
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <p class="bank__after">
+            捐款完畢後，請填寫匯款表單，以利後續收據開立與會員資料建檔。
+          </p>
+          <a
+            class="btn"
+            href="https://docs.google.com/forms/d/e/1FAIpQLSdglkPY2jN7DjP4saIVfhL0UqL9oru5RlCEkrv1-ZXpj8m0dA/viewform"
+            target="_blank"
+            rel="noopener">填寫系友會匯款表單</a
+          >
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 區塊四：聯絡（靠右） -->
+  <section id="contact" class="panel panel--right">
+    <div class="panel__inner container">
+      <div class="panel__text panel__text--end" data-reveal>
+        <span class="eyebrow">Contact</span>
+        <h2 class="panel__title">聯絡資訊</h2>
+        <p>如您願意公開您的資訊、放入通訊錄供系友查詢，請填寫個資宣告。</p>
+        <ul class="contact-links">
+          <li>
+            <a href="https://forms.gle/KhGkJPiBqnu6sgp17" target="_blank" rel="noopener">系友通訊錄意願調查暨個資宣告</a>
+          </li>
+          <li>
+            <a href="https://www.facebook.com/groups/571003237212751" target="_blank" rel="noopener">系友會臉書社團</a>
+          </li>
+          <li>
+            <a href="mailto:amebimealumni@gmail.com">amebimealumni@gmail.com</a>
+          </li>
+        </ul>
+        <p class="contact-note">有任何建議，歡迎來信或加入臉書社團。</p>
+      </div>
+
+      <div class="panel__aside" data-reveal style="--reveal-delay: 0.15s">
+        <img class="illustration" src="/images/illustration.webp" width="720" height="654" alt="系友會吉祥物：齒輪、星星與 DNA 角色在各自的實驗室裡" />
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  // 複製帳號
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copy!);
+        btn.textContent = '已複製';
+      } catch {
+        btn.textContent = '複製失敗';
+      }
+      setTimeout(() => (btn.textContent = '複製'), 1800);
+    });
+  });
+
+  // 右側區塊指示點
+  const dots = document.querySelectorAll<HTMLAnchorElement>('[data-dot]');
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        dots.forEach((d) => d.toggleAttribute('aria-current', d.dataset.dot === e.target.id));
+      }
+    },
+    { threshold: 0.5 },
+  );
+  document.querySelectorAll('.panel').forEach((p) => io.observe(p));
+</script>
+
+<style>
+  /* 滾動吸附只在桌機尺寸啟用；手機上區塊高度超過一屏，吸附反而干擾閱讀 */
+  @media (min-width: 861px) and (min-height: 640px) {
+    :global(html.is-snap) {
+      scroll-snap-type: y mandatory;
+    }
+  }
+
+  .panel {
+    min-height: calc(100svh - var(--nav-h));
+    display: flex;
+    align-items: center;
+    padding: var(--space-12) 0;
+    scroll-snap-align: start;
+  }
+  .panel + .panel {
+    border-top: 1px solid var(--c-line);
+  }
+  .panel:nth-of-type(even) {
+    background: var(--c-surface);
+  }
+  .panel__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: var(--space-16);
+    align-items: center;
+  }
+  .panel--right .panel__inner {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  }
+  .panel--right .panel__text {
+    order: 2;
+  }
+  .panel__text--end {
+    text-align: right;
+  }
+  .panel__text--end > p {
+    margin-left: auto;
+  }
+  .panel__text > p {
+    max-width: 34em;
+  }
+  .panel__title {
+    margin: var(--space-3) 0 var(--space-8);
+    font-size: var(--fs-2xl);
+    letter-spacing: 0.12em;
+  }
+  .prose {
+    max-width: 38em;
+    font-size: 0.9375rem;
+    color: var(--c-ink);
+    text-align: justify;
+  }
+  .prose p:last-child {
+    margin-bottom: 0;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-8);
+  }
+  .panel__text--end .actions {
+    justify-content: flex-end;
+  }
+
+  /* 區塊一 */
+  .logos {
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    margin-bottom: var(--space-12);
+  }
+  .logos img {
+    width: auto;
+    height: 96px;
+  }
+  .gens {
+    position: relative;
+    margin: 0;
+    padding: 0 0 0 var(--space-8);
+    list-style: none;
+  }
+  .gens::before {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 0.9em;
+    bottom: 0.9em;
+    width: 1px;
+    background: var(--c-line);
+  }
+  .gens__item {
+    position: relative;
+    display: grid;
+    grid-template-columns: 3em 1fr;
+    column-gap: var(--space-3);
+    padding: var(--space-3) 0;
+    color: var(--c-ink-soft);
+  }
+  .gens__item::before {
+    content: '';
+    position: absolute;
+    left: calc(-1 * var(--space-8));
+    top: 1.15em;
+    width: 11px;
+    height: 11px;
+    border: 1px solid var(--c-ink-soft);
+    border-radius: 50%;
+    background: var(--c-bg);
+  }
+  .gens__ver {
+    grid-row: span 2;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .gens__zh {
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+  }
+  .gens__en {
+    font-size: var(--fs-xs);
+    line-height: 1.4;
+  }
+  .gens__item.is-current {
+    color: var(--c-ink);
+  }
+  .gens__item.is-current::before {
+    border-color: var(--c-slate);
+    background: var(--c-slate);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--c-slate) 25%, transparent);
+  }
+  .gens__item.is-current .gens__ver {
+    color: var(--c-slate-ink);
+  }
+
+  /* 區塊二：宗旨卡片，參照 Logo B 的曬衣繩相片意象 */
+  .assoc-logo {
+    width: 120px;
+    margin: 0 0 var(--space-6) auto;
+  }
+  .missions__label {
+    margin-bottom: var(--space-6);
+  }
+  .missions {
+    display: grid;
+    gap: var(--space-12);
+    padding-top: var(--space-4);
+  }
+  .missions__row {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
+  /* 每一列上方的繩子 */
+  .missions__row::before {
+    content: '';
+    position: absolute;
+    top: -14px;
+    left: -4%;
+    right: -4%;
+    height: 1px;
+    background: var(--c-ink-soft);
+    opacity: 0.45;
+  }
+  .mission {
+    position: relative;
+    min-height: 9.5rem;
+    display: flex;
+    align-items: flex-end;
+    padding: var(--space-8) var(--space-6) var(--space-6);
+    background: var(--c-paper);
+    border: 1px solid var(--c-line);
+    border-radius: 3px;
+    box-shadow: 0 1px 0 rgb(58 56 53 / 0.04), 0 10px 24px -14px rgb(58 56 53 / 0.25);
+    transform: rotate(var(--tilt, 0deg));
+    transform-origin: 50% 0;
+    transition: transform 0.5s var(--ease), box-shadow 0.5s var(--ease);
+  }
+  .missions__row:first-child .mission:first-child { --tilt: -1.6deg; }
+  .missions__row:first-child .mission:last-child { --tilt: 1.2deg; }
+  .missions__row:last-child .mission:first-child { --tilt: 0.9deg; }
+  .missions__row:last-child .mission:last-child { --tilt: -1.3deg; }
+  .mission:hover {
+    transform: rotate(0deg) translateY(-2px);
+    box-shadow: 0 1px 0 rgb(58 56 53 / 0.04), 0 16px 30px -16px rgb(58 56 53 / 0.3);
+  }
+  .mission__peg {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    width: 12px;
+    height: 30px;
+    margin-left: -6px;
+    border-radius: 2px;
+    background: var(--peg);
+  }
+  .mission[data-peg='coral'] { --peg: var(--c-coral); }
+  .mission[data-peg='mustard'] { --peg: var(--c-mustard); }
+  .mission[data-peg='sage'] { --peg: var(--c-sage); }
+  .mission[data-peg='slate'] { --peg: var(--c-slate); }
+  .mission p {
+    margin: 0;
+    font-weight: 500;
+    line-height: 1.7;
+    letter-spacing: 0.08em;
+  }
+
+  /* 區塊三 */
+  .donate-online {
+    margin-top: var(--space-8);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--c-line);
+    max-width: 34em;
+  }
+  .donate__h {
+    font-size: var(--fs-lg);
+    letter-spacing: 0.1em;
+  }
+  .donate__note {
+    margin: var(--space-1) 0 var(--space-4);
+    color: var(--c-ink-soft);
+    font-size: var(--fs-sm);
+  }
+  .bank {
+    padding: var(--space-8);
+    background: var(--c-paper);
+    border: 1px solid var(--c-line);
+    border-radius: var(--radius);
+  }
+  .bank__list {
+    margin: var(--space-6) 0;
+  }
+  .bank__row {
+    display: grid;
+    grid-template-columns: 5.5em 1fr;
+    gap: var(--space-4);
+    padding: var(--space-3) 0;
+    border-top: 1px solid var(--c-line);
+  }
+  .bank__row:last-child {
+    border-bottom: 1px solid var(--c-line);
+  }
+  .bank__row dt {
+    color: var(--c-ink-soft);
+    font-size: var(--fs-sm);
+  }
+  .bank__row dd {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin: 0;
+  }
+  .bank__value {
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+  }
+  .bank__value--num {
+    white-space: nowrap;
+  }
+  .bank__copy {
+    padding: 0.1em 0.75em;
+    border: 1px solid var(--c-line);
+    border-radius: 999px;
+    background: none;
+    color: var(--c-ink-soft);
+    font: inherit;
+    font-size: var(--fs-xs);
+    cursor: pointer;
+  }
+  .bank__copy:hover {
+    border-color: var(--c-ink-soft);
+    color: var(--c-ink);
+  }
+  .bank__after {
+    font-size: var(--fs-sm);
+    color: var(--c-ink-soft);
+  }
+
+  /* 區塊四 */
+  .contact-links {
+    margin: var(--space-6) 0;
+    padding: 0;
+    list-style: none;
+  }
+  .contact-links li {
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--c-line);
+  }
+  .contact-links li:first-child {
+    border-top: 1px solid var(--c-line);
+  }
+  .contact-links a {
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .contact-links a:hover {
+    text-decoration: underline;
+  }
+  .contact-note {
+    color: var(--c-ink-soft);
+    font-size: var(--fs-sm);
+  }
+  .illustration {
+    width: min(100%, 460px);
+  }
+
+  /* 右側區塊指示 */
+  .dots {
+    position: fixed;
+    right: var(--space-6);
+    top: 50%;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    transform: translateY(-50%);
+  }
+  .dots a {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+  }
+  .dots a::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--c-ink-soft);
+    opacity: 0.4;
+    transition: transform 0.3s var(--ease), opacity 0.3s var(--ease);
+  }
+  .dots a[aria-current]::before {
+    opacity: 1;
+    transform: scale(1.4);
+    background: var(--c-ink);
+  }
+
+  @media (max-width: 1240px) {
+    .dots {
+      right: var(--space-2);
+    }
+  }
+
+  @media (max-width: 860px) {
+    .dots {
+      display: none;
+    }
+    .panel {
+      min-height: 0;
+      padding: var(--space-16) 0;
+    }
+    .panel__inner,
+    .panel--right .panel__inner {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-12);
+    }
+    .panel--right .panel__text {
+      order: 0;
+    }
+    .logos img {
+      height: 72px;
+    }
+    .missions__row {
+      gap: var(--space-4);
+    }
+    .panel__text--end {
+      text-align: left;
+    }
+    .panel__text--end .actions {
+      justify-content: flex-start;
+    }
+    .assoc-logo {
+      margin-left: 0;
+    }
+    .mission {
+      min-height: 8rem;
+      padding: var(--space-6) var(--space-4) var(--space-4);
+    }
+    .mission p {
+      font-size: var(--fs-sm);
+    }
+    .illustration {
+      margin-inline: auto;
+    }
+    /* 中英混排在窄欄左右對齊會撐出大空隙 */
+    .prose {
+      text-align: left;
+    }
+    .bank {
+      padding: var(--space-6);
+    }
+    .bank__row {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+  }
+</style>

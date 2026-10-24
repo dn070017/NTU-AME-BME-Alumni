@@ -1,0 +1,111 @@
+---
+import { and, desc, eq } from 'drizzle-orm';
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { db, schema } from '../../db';
+import { displayDate, isoDate, mediaUrl } from '../../lib/format';
+
+const a = schema.albums;
+const albums = await db
+  .select({ id: a.id, title: a.title, publishedAt: a.publishedAt, coverPhotoId: a.coverPhotoId })
+  .from(a)
+  .where(eq(a.published, true))
+  .orderBy(desc(a.publishedAt), desc(a.id));
+
+const photos = await db
+  .select({ id: schema.photos.id, albumId: schema.photos.albumId, thumbKey: schema.photos.thumbKey })
+  .from(schema.photos)
+  .innerJoin(a, and(eq(a.id, schema.photos.albumId), eq(a.published, true)))
+  .orderBy(schema.photos.sortOrder, schema.photos.id);
+const byAlbum = Map.groupBy(photos, (p) => p.albumId);
+
+const cards = albums
+  .map((al) => {
+    const list = byAlbum.get(al.id) ?? [];
+    const cover = list.find((p) => p.id === al.coverPhotoId) ?? list[0];
+    return { ...al, count: list.length, coverKey: cover?.thumbKey };
+  })
+  .filter((c) => c.count > 0);
+---
+<Base title="精彩點滴">
+  <PageHeader eyebrow="Gallery" title="精彩點滴" />
+  <section class="container albums-wrap">
+    {cards.length === 0 ? (
+      <p class="albums-empty">目前尚無相簿。</p>
+    ) : (
+      <ul class="albums">
+        {cards.map((c) => (
+          <li>
+            <a class="album" href={`/gallery/${c.id}`}>
+              <div class="album__cover">
+                <img src={mediaUrl(c.coverKey!)} alt="" loading="lazy" />
+              </div>
+              <div class="album__meta">
+                <time datetime={isoDate(c.publishedAt)}>{displayDate(c.publishedAt)}</time>
+                <span>{c.count} 張</span>
+              </div>
+              <h2 class="album__title">{c.title}</h2>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
+</Base>
+
+<style>
+  .albums-wrap {
+    padding: var(--space-12) 0 var(--space-16);
+  }
+  .albums-empty {
+    color: var(--c-ink-soft);
+  }
+  .albums {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: var(--space-12) var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .album {
+    display: block;
+    color: var(--c-ink);
+    text-decoration: none;
+  }
+  .album__cover {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--c-surface);
+  }
+  .album__cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s var(--ease);
+  }
+  .album:hover .album__cover img {
+    transform: scale(1.03);
+  }
+  .album__meta {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--space-4);
+    color: var(--c-ink-soft);
+    font-size: var(--fs-xs);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+  }
+  .album__title {
+    margin-top: var(--space-1);
+    font-size: var(--fs-md);
+    font-weight: 500;
+    line-height: 1.6;
+    letter-spacing: 0.04em;
+    transition: color 0.2s var(--ease);
+  }
+  .album:hover .album__title {
+    color: var(--c-slate-ink);
+  }
+</style>

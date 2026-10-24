@@ -1,0 +1,262 @@
+/* 設計系統：無印風。色票來源見 assets/instructions.md「視覺方向」 */
+:root {
+  --c-bg: #f7f5f0;
+  --c-surface: #efece6;
+  --c-paper: #fbfaf7;
+  --c-ink: #3a3835;
+  --c-ink-soft: #7a766f;
+  --c-line: #ddd8cf;
+
+  --c-slate: #84a2b4;
+  --c-coral: #d4737f;
+  --c-mustard: #f2d488;
+  --c-sage: #96c4a4;
+  /* 文字用的加深版本（符合對比度） */
+  --c-slate-ink: #4f6f82;
+  --c-coral-ink: #a8505b;
+
+  --font-sans: 'Inter', 'Noto Sans TC', system-ui, -apple-system, 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.25rem;
+  --fs-xl: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
+  --fs-2xl: clamp(1.875rem, 1.3rem + 2.2vw, 2.875rem);
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  --radius: 6px;
+  --nav-h: 68px;
+  --content-w: 1160px;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: var(--nav-h);
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  margin: 0;
+  background: var(--c-bg);
+  color: var(--c-ink);
+  font-family: var(--font-sans);
+  font-size: var(--fs-md);
+  line-height: 1.85;
+  letter-spacing: 0.02em;
+  -webkit-font-smoothing: antialiased;
+}
+
+main {
+  flex: 1;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+}
+
+p {
+  margin: 0 0 var(--space-4);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+a {
+  color: var(--c-slate-ink);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+}
+
+a:hover {
+  color: var(--c-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--c-slate);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.container {
+  width: min(100% - 2 * var(--space-6), var(--content-w));
+  margin-inline: auto;
+}
+
+.eyebrow {
+  display: block;
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--c-ink-soft);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.7em 1.4em;
+  border: 1px solid var(--c-ink);
+  border-radius: 999px;
+  color: var(--c-ink);
+  background: transparent;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.25s var(--ease), color 0.25s var(--ease);
+}
+
+.btn:hover {
+  background: var(--c-ink);
+  color: var(--c-bg);
+}
+
+.btn--solid {
+  background: var(--c-ink);
+  color: var(--c-bg);
+}
+
+.btn--solid:hover {
+  background: var(--c-slate-ink);
+  border-color: var(--c-slate-ink);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* 進場動畫：由 Base layout 的 IntersectionObserver 加上 .is-in */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+  transition-delay: var(--reveal-delay, 0s);
+}
+
+[data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 文章內文（前台文章頁與後台編輯器共用，讓編輯所見即所得） */
+.prose {
+  font-size: 1rem;
+  line-height: 1.95;
+  overflow-wrap: anywhere;
+}
+.prose > * + * {
+  margin-top: var(--space-4);
+}
+.prose p {
+  margin: 0;
+}
+.prose p + p {
+  margin-top: var(--space-4);
+}
+.prose h2 {
+  margin-top: var(--space-12);
+  font-size: var(--fs-lg);
+  letter-spacing: 0.1em;
+}
+.prose h3 {
+  margin-top: var(--space-8);
+  font-size: var(--fs-md);
+  letter-spacing: 0.08em;
+}
+.prose h2 + *,
+.prose h3 + * {
+  margin-top: var(--space-3);
+}
+.prose a {
+  overflow-wrap: anywhere;
+}
+.prose ul,
+.prose ol {
+  margin-bottom: 0;
+  padding-left: 1.5em;
+}
+.prose li + li {
+  margin-top: var(--space-1);
+}
+.prose li p {
+  margin: 0;
+}
+.prose blockquote {
+  margin-inline: 0;
+  padding: var(--space-1) 0 var(--space-1) var(--space-6);
+  border-left: 2px solid var(--c-slate);
+  color: var(--c-ink-soft);
+}
+.prose hr {
+  margin-block: var(--space-12);
+  border: 0;
+  border-top: 1px solid var(--c-line);
+}
+.prose img {
+  width: auto;
+  max-height: min(75vh, 720px);
+  margin-inline: auto;
+  border-radius: 3px;
+}
+.prose iframe {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 3px;
+}
+.prose [data-youtube-video] {
+  margin-block: var(--space-8);
+}

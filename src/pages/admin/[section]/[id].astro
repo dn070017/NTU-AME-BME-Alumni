@@ -1,0 +1,33 @@
+---
+import { and, eq } from 'drizzle-orm';
+import Admin from '../../../layouts/Admin.astro';
+import PostEditor from '../../../components/admin/PostEditor';
+import { db, schema } from '../../../db';
+import { parseId } from '../../../lib/api';
+import { isoDate } from '../../../lib/format';
+import { isPostSection, POST_SECTIONS } from '../../../lib/sections';
+
+const { section } = Astro.params;
+const id = parseId(Astro.params.id);
+if (!isPostSection(section) || !id) return Astro.rewrite('/404');
+const { type, label } = POST_SECTIONS[section];
+
+const [row] = await db
+  .select()
+  .from(schema.posts)
+  .where(and(eq(schema.posts.id, id), eq(schema.posts.type, type)))
+  .limit(1);
+if (!row) return Astro.rewrite('/404');
+
+const post = {
+  id: row.id,
+  title: row.title,
+  contentHtml: row.contentHtml,
+  coverKey: row.coverKey,
+  published: row.published,
+  publishedAt: isoDate(row.publishedAt),
+};
+---
+<Admin title={row.title}>
+  <PostEditor client:only="react" section={section} sectionLabel={label} type={type} post={post} />
+</Admin>

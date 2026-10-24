@@ -1,0 +1,153 @@
+---
+import { and, eq } from 'drizzle-orm';
+import Base from '../../layouts/Base.astro';
+import { db, schema } from '../../db';
+import { albumPhotos } from '../../lib/albums';
+import { parseId } from '../../lib/api';
+import { displayDate, isoDate, mediaUrl } from '../../lib/format';
+
+const id = parseId(Astro.params.id);
+const [album] = id
+  ? await db.select().from(schema.albums).where(and(eq(schema.albums.id, id), eq(schema.albums.published, true))).limit(1)
+  : [];
+if (!id || !album) return Astro.rewrite('/404');
+
+const photos = await albumPhotos(id);
+const coverKey = (photos.find((p) => p.id === album.coverPhotoId) ?? photos[0])?.thumbKey;
+---
+<Base
+  title={album.title}
+  description={album.description ?? `${album.title}，共 ${photos.length} 張照片`}
+  image={coverKey ? mediaUrl(coverKey) : undefined}
+>
+  <article class="album-page container">
+    <header class="album-page__head">
+      <a class="eyebrow album-page__section" href="/gallery">Gallery · 精彩點滴</a>
+      <h1>{album.title}</h1>
+      <p class="album-page__meta">
+        <time datetime={isoDate(album.publishedAt)}>{displayDate(album.publishedAt)}</time>
+        <span>{photos.length} 張照片</span>
+      </p>
+      {album.description && <p class="album-page__desc">{album.description}</p>}
+    </header>
+
+    {photos.length === 0 ? (
+      <p class="album-page__empty">這本相簿目前沒有照片。</p>
+    ) : (
+      <div class="jgrid" id="album-grid">
+        {photos.map((p, i) => (
+          <a
+            href={mediaUrl(p.key)}
+            data-pswp-width={p.width}
+            data-pswp-height={p.height}
+            style={`--r: ${(p.width / p.height).toFixed(4)}`}
+            aria-label={`檢視第 ${i + 1} 張照片`}
+          >
+            <img src={mediaUrl(p.thumbKey)} alt={p.caption ?? ''} loading={i < 8 ? 'eager' : 'lazy'} width={p.width} height={p.height} />
+          </a>
+        ))}
+      </div>
+    )}
+
+    <p class="album-page__back"><a class="btn" href="/gallery">回到精彩點滴</a></p>
+  </article>
+</Base>
+
+<script>
+  import PhotoSwipeLightbox from 'photoswipe/lightbox';
+  import 'photoswipe/style.css';
+
+  const grid = document.getElementById('album-grid');
+  if (grid) {
+    const lightbox = new PhotoSwipeLightbox({
+      gallery: grid,
+      children: 'a',
+      pswpModule: () => import('photoswipe'),
+      bgOpacity: 0.94,
+      showHideAnimationType: 'zoom',
+      wheelToZoom: true,
+      errorMsg: '無法載入這張照片',
+      closeTitle: '關閉',
+      zoomTitle: '縮放',
+      arrowPrevTitle: '上一張',
+      arrowNextTitle: '下一張',
+    });
+    lightbox.init();
+  }
+</script>
+
+<style>
+  .album-page {
+    padding: var(--space-12) 0 var(--space-16);
+  }
+  .album-page__head {
+    margin-bottom: var(--space-8);
+  }
+  .album-page__section {
+    text-decoration: none;
+  }
+  .album-page__section:hover {
+    color: var(--c-ink);
+  }
+  .album-page__head h1 {
+    margin: var(--space-3) 0 var(--space-2);
+    font-size: var(--fs-xl);
+    letter-spacing: 0.06em;
+  }
+  .album-page__meta {
+    display: flex;
+    gap: var(--space-4);
+    margin: 0;
+    color: var(--c-ink-soft);
+    font-size: var(--fs-sm);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+  }
+  .album-page__desc {
+    max-width: 40em;
+    margin: var(--space-4) 0 0;
+  }
+  .album-page__empty {
+    color: var(--c-ink-soft);
+  }
+
+  /* 等高列（justified）格狀排列：每張依長寬比分配寬度，列高一致 */
+  .jgrid {
+    --row: 220px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .jgrid::after {
+    content: '';
+    flex-grow: 999;
+  }
+  .jgrid a {
+    flex-grow: var(--r);
+    flex-basis: calc(var(--r) * var(--row));
+    overflow: hidden;
+    background: var(--c-surface);
+  }
+  .jgrid img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: var(--r);
+    object-fit: cover;
+    transition: opacity 0.3s var(--ease), transform 0.6s var(--ease);
+  }
+  .jgrid a:hover img {
+    opacity: 0.88;
+    transform: scale(1.02);
+  }
+  .album-page__back {
+    margin-top: var(--space-12);
+    text-align: center;
+  }
+  @media (max-width: 640px) {
+    .jgrid {
+      /* 讓兩張橫幅照片可並排一列 */
+      --row: clamp(80px, 27vw, 120px);
+      gap: 3px;
+    }
+  }
+</style>

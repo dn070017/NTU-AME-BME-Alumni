@@ -1,0 +1,199 @@
+---
+import { NAV_ITEMS, SITE_NAME } from '../lib/nav';
+
+const path = Astro.url.pathname;
+const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
+---
+<header class="nav">
+  <div class="nav__inner container">
+    <a class="nav__logo" href="/">
+      <img src="/images/logo-a-nav.webp" width="180" height="140" alt={SITE_NAME} />
+    </a>
+
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-menu">
+      <span class="visually-hidden">開啟選單</span>
+      <span class="nav__bars" aria-hidden="true"></span>
+    </button>
+
+    <nav id="nav-menu" class="nav__menu" aria-label="主選單">
+      <ul>
+        {NAV_ITEMS.map((item) => (
+          <li>
+            <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const nav = document.querySelector<HTMLElement>('.nav')!;
+  const toggle = nav.querySelector<HTMLButtonElement>('.nav__toggle')!;
+  const label = toggle.querySelector('.visually-hidden')!;
+
+  const setOpen = (open: boolean) => {
+    toggle.setAttribute('aria-expanded', String(open));
+    label.textContent = open ? '關閉選單' : '開啟選單';
+    nav.classList.toggle('is-open', open);
+  };
+  toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+  document.addEventListener('keydown', (e) => e.key === 'Escape' && setOpen(false));
+
+  const onScroll = () => nav.classList.toggle('is-scrolled', window.scrollY > 8);
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+</script>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--nav-h);
+    background: color-mix(in srgb, var(--c-bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s var(--ease);
+  }
+  .nav.is-scrolled {
+    border-bottom-color: var(--c-line);
+  }
+  .nav__inner {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav__logo {
+    display: block;
+    height: 52px;
+  }
+  .nav__logo img {
+    height: 100%;
+    width: auto;
+  }
+
+  .nav__menu ul {
+    display: flex;
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nav__menu a {
+    position: relative;
+    display: block;
+    padding: var(--space-2) 0;
+    color: var(--c-ink);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-decoration: none;
+  }
+  .nav__menu a::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 2px;
+    width: 0;
+    height: 1px;
+    background: var(--c-ink);
+    transition: width 0.3s var(--ease), left 0.3s var(--ease);
+  }
+  .nav__menu a:hover::after,
+  .nav__menu a[aria-current='page']::after {
+    left: 0;
+    width: 100%;
+  }
+  .nav__menu a[aria-current='page'] {
+    color: var(--c-slate-ink);
+  }
+  .nav__menu a[aria-current='page']::after {
+    background: var(--c-slate);
+  }
+
+  .nav__toggle {
+    display: none;
+  }
+
+  @media (max-width: 860px) {
+    .nav__toggle {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      margin-right: calc(-1 * var(--space-2));
+      border: 0;
+      background: none;
+      cursor: pointer;
+    }
+    .nav__bars,
+    .nav__bars::before,
+    .nav__bars::after {
+      display: block;
+      width: 22px;
+      height: 1.5px;
+      background: var(--c-ink);
+      transition: transform 0.3s var(--ease), opacity 0.2s;
+    }
+    .nav__bars {
+      position: relative;
+    }
+    .nav__bars::before,
+    .nav__bars::after {
+      content: '';
+      position: absolute;
+      left: 0;
+    }
+    .nav__bars::before {
+      top: -7px;
+    }
+    .nav__bars::after {
+      top: 7px;
+    }
+    .is-open .nav__bars {
+      background: transparent;
+    }
+    .is-open .nav__bars::before {
+      transform: translateY(7px) rotate(45deg);
+    }
+    .is-open .nav__bars::after {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+
+    .nav__menu {
+      position: fixed;
+      inset: var(--nav-h) 0 auto 0;
+      background: var(--c-bg);
+      border-bottom: 1px solid var(--c-line);
+      visibility: hidden;
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: opacity 0.25s var(--ease), transform 0.25s var(--ease), visibility 0.25s;
+    }
+    .is-open .nav__menu {
+      visibility: visible;
+      opacity: 1;
+      transform: none;
+    }
+    .nav__menu ul {
+      flex-direction: column;
+      gap: 0;
+      padding: var(--space-2) var(--space-6) var(--space-6);
+    }
+    .nav__menu li + li {
+      border-top: 1px solid var(--c-line);
+    }
+    .nav__menu a {
+      padding: var(--space-4) 0;
+      font-size: var(--fs-md);
+    }
+    .nav__menu a::after {
+      display: none;
+    }
+  }
+</style>

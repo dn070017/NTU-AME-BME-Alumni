@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+.pixi/
+.env
+.dev.vars
+*.log
+
+# 爬取的既有內容（約 94MB），可由 pixi run scrape 重新產生
+assets/initial_data/

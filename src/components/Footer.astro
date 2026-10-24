@@ -1,0 +1,53 @@
+---
+import { SITE_NAME } from '../lib/nav';
+---
+<footer class="footer">
+  <div class="footer__inner container">
+    <p class="footer__name">{SITE_NAME}</p>
+    <p class="footer__meta">
+      <a href="mailto:amebimealumni@gmail.com">amebimealumni@gmail.com</a>
+      <span aria-hidden="true">·</span>
+      <a href="https://www.facebook.com/groups/571003237212751" target="_blank" rel="noopener">系友會臉書社團</a>
+    </p>
+    <p class="footer__copy">© {new Date().getFullYear()} {SITE_NAME}</p>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-top: 1px solid var(--c-line);
+    padding: var(--space-8) 0;
+    font-size: var(--fs-xs);
+    color: var(--c-ink-soft);
+    scroll-snap-align: end;
+  }
+  .footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-8);
+  }
+  .footer p {
+    margin: 0;
+  }
+  .footer__name {
+    color: var(--c-ink);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+  }
+  .footer__meta {
+    display: flex;
+    gap: var(--space-2);
+  }
+  .footer a {
+    color: inherit;
+  }
+  .footer .footer__copy {
+    margin-left: auto;
+  }
+  @media (max-width: 640px) {
+    .footer .footer__copy {
+      margin-left: 0;
+    }
+  }
+</style>

@@ -1,0 +1,84 @@
+---
+import { count, eq } from 'drizzle-orm';
+import Admin from '../../layouts/Admin.astro';
+import { db, schema } from '../../db';
+
+const countPosts = (type: 'announcement' | 'interview') =>
+  db.select({ n: count() }).from(schema.posts).where(eq(schema.posts.type, type)).then((r) => r[0].n);
+
+const countDocs = (type: 'lecture' | 'resource') =>
+  db.select({ n: count() }).from(schema.documents).where(eq(schema.documents.type, type)).then((r) => r[0].n);
+
+const [announcements, interviews, lectures, resources, albums, products] = await Promise.all([
+  countPosts('announcement'),
+  countPosts('interview'),
+  countDocs('lecture'),
+  countDocs('resource'),
+  db.select({ n: count() }).from(schema.albums).then((r) => r[0].n),
+  db.select({ n: count() }).from(schema.products).then((r) => r[0].n),
+]);
+
+const cards = [
+  { href: '/admin/announcements', label: '活動公告', n: announcements, unit: '篇' },
+  { href: '/admin/interviews', label: '系友訪談', n: interviews, unit: '篇' },
+  { href: '/admin/lectures', label: '系友演講', n: lectures, unit: '份' },
+  { href: '/admin/gallery', label: '精彩點滴', n: albums, unit: '本相簿' },
+  { href: '/admin/resources', label: '相關資料', n: resources, unit: '份' },
+  { href: '/admin/sponsor', label: '商品贊助', n: products, unit: '項' },
+];
+---
+<Admin title="總覽">
+  <div class="admin-head">
+    <h1>總覽</h1>
+  </div>
+  <ul class="overview">
+    {cards.map((c) => (
+      <li>
+        <a href={c.href}>
+          <span class="overview__label">{c.label}</span>
+          <span class="overview__n">{c.n}<small>{c.unit}</small></span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</Admin>
+
+<style>
+  .overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .overview a {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-6);
+    background: var(--c-paper);
+    border: 1px solid var(--c-line);
+    border-radius: var(--radius);
+    color: var(--c-ink);
+    text-decoration: none;
+    transition: border-color 0.2s var(--ease);
+  }
+  .overview a:hover {
+    border-color: var(--c-ink-soft);
+  }
+  .overview__label {
+    color: var(--c-ink-soft);
+    font-size: var(--fs-sm);
+  }
+  .overview__n {
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .overview__n small {
+    margin-left: var(--space-1);
+    font-size: var(--fs-sm);
+    font-weight: 400;
+    color: var(--c-ink-soft);
+  }
+</style>

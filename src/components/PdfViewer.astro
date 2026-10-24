@@ -1,0 +1,278 @@
+---
+/**
+ * 以 PDF.js 內嵌顯示 PDF。手機瀏覽器對 <iframe> PDF 支援不一，改由 canvas 繪製。
+ * 頁面於捲動到附近時才繪製，寬度隨容器縮放。
+ */
+interface Props {
+  url: string;
+  title: string;
+}
+const { url, title } = Astro.props;
+---
+<div class="pdfv" data-pdf-viewer data-url={url}>
+  <div class="pdfv__bar">
+    <span class="pdfv__pages" aria-live="polite">載入中…</span>
+    <div class="pdfv__zoom" role="group" aria-label="縮放">
+      <button type="button" data-zoom="-1" aria-label="縮小">−</button>
+      <button type="button" data-zoom="0" class="pdfv__zoom-level" aria-label="符合寬度">100%</button>
+      <button type="button" data-zoom="1" aria-label="放大">＋</button>
+    </div>
+    <div class="pdfv__links">
+      <a href={url} target="_blank" rel="noopener">新分頁開啟</a>
+      <a href={url} download={`${title}.pdf`}>下載 PDF</a>
+    </div>
+  </div>
+  <div class="pdfv__scroller">
+    <div class="pdfv__doc" aria-label={`${title}（PDF 內容）`}></div>
+  </div>
+  <noscript><p class="pdfv__fallback">需要啟用 JavaScript 才能預覽，請<a href={url}>直接下載 PDF</a>。</p></noscript>
+</div>
+
+<script>
+  import * as pdfjs from 'pdfjs-dist';
+  import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+  import type { PDFDocumentProxy, PDFPageProxy, RenderTask } from 'pdfjs-dist';
+
+  pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+
+  const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3];
+
+  class Viewer {
+    root: HTMLElement;
+    docEl: HTMLElement;
+    scroller: HTMLElement;
+    pagesLabel: HTMLElement;
+    zoomLabel: HTMLElement;
+    pdf!: PDFDocumentProxy;
+    pages: { el: HTMLDivElement; page?: PDFPageProxy; rendered: number; task?: RenderTask; baseW: number; baseH: number }[] = [];
+    zoomIndex = ZOOMS.indexOf(1);
+    current = 1;
+    lazy!: IntersectionObserver;
+    visible!: IntersectionObserver;
+
+    constructor(root: HTMLElement) {
+      this.root = root;
+      this.docEl = root.querySelector('.pdfv__doc')!;
+      this.scroller = root.querySelector('.pdfv__scroller')!;
+      this.pagesLabel = root.querySelector('.pdfv__pages')!;
+      this.zoomLabel = root.querySelector('.pdfv__zoom-level')!;
+    }
+
+    get scale() {
+      // 以容器寬度為基準（100% = 符合寬度）
+      const avail = this.scroller.clientWidth - 2 * 16;
+      return (avail / this.pages[0].baseW) * ZOOMS[this.zoomIndex];
+    }
+
+    async init() {
+      try {
+        this.pdf = await pdfjs.getDocument({
+          url: this.root.dataset.url!,
+          rangeChunkSize: 256 * 1024,
+          // 未內嵌字型的中文 PDF 需要 CMap 與標準字型（由 public/pdfjs 提供）
+          cMapUrl: '/pdfjs/cmaps/',
+          cMapPacked: true,
+          standardFontDataUrl: '/pdfjs/standard_fonts/',
+        }).promise;
+      } catch (err) {
+        console.error(err);
+        this.pagesLabel.textContent = '無法載入 PDF';
+        this.docEl.innerHTML = `<p class="pdfv__fallback">無法預覽此 PDF，請改用「下載 PDF」。</p>`;
+        return;
+      }
+
+      // 先取第一頁尺寸作為所有頁面的佔位大小，避免捲動跳動
+      const first = await this.pdf.getPage(1);
+      const vp = first.getViewport({ scale: 1 });
+      for (let i = 1; i <= this.pdf.numPages; i++) {
+        const el = document.createElement('div');
+        el.className = 'pdfv__page';
+        el.dataset.page = String(i);
+        this.docEl.appendChild(el);
+        this.pages.push({ el, rendered: 0, baseW: vp.width, baseH: vp.height, page: i === 1 ? first : undefined });
+      }
+
+      this.lazy = new IntersectionObserver((entries) => entries.forEach((e) => e.isIntersecting && this.render(Number((e.target as HTMLElement).dataset.page))), {
+        root: this.scroller,
+        rootMargin: '600px 0px',
+      });
+      this.visible = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) if (e.isIntersecting) this.setCurrent(Number((e.target as HTMLElement).dataset.page));
+        },
+        { root: this.scroller, threshold: 0.5 },
+      );
+      this.pages.forEach((p) => {
+        this.lazy.observe(p.el);
+        this.visible.observe(p.el);
+      });
+
+      this.layout();
+      this.setCurrent(1);
+
+      this.root.querySelectorAll<HTMLButtonElement>('[data-zoom]').forEach((btn) =>
+        btn.addEventListener('click', () => {
+          const d = Number(btn.dataset.zoom);
+          this.zoomIndex = d === 0 ? ZOOMS.indexOf(1) : Math.min(ZOOMS.length - 1, Math.max(0, this.zoomIndex + d));
+          this.layout();
+        }),
+      );
+
+      let timer: number | undefined;
+      new ResizeObserver(() => {
+        clearTimeout(timer);
+        timer = window.setTimeout(() => this.layout(), 150);
+      }).observe(this.scroller);
+    }
+
+    setCurrent(n: number) {
+      this.current = n;
+      this.pagesLabel.textContent = `第 ${n} / ${this.pdf.numPages} 頁`;
+    }
+
+    /** 依目前縮放設定每頁佔位尺寸，並重新繪製可見頁面 */
+    layout() {
+      const scale = this.scale;
+      this.zoomLabel.textContent = `${Math.round(ZOOMS[this.zoomIndex] * 100)}%`;
+      for (const p of this.pages) {
+        p.el.style.width = `${Math.floor(p.baseW * scale)}px`;
+        p.el.style.height = `${Math.floor(p.baseH * scale)}px`;
+        p.rendered = 0;
+      }
+      // 觸發重新觀察，讓 IntersectionObserver 對可見頁面重新回報
+      this.pages.forEach((p) => {
+        this.lazy.unobserve(p.el);
+        this.lazy.observe(p.el);
+      });
+    }
+
+    async render(n: number) {
+      const p = this.pages[n - 1];
+      const scale = this.scale;
+      if (p.rendered === scale) return;
+      p.rendered = scale;
+      p.task?.cancel();
+
+      p.page ??= await this.pdf.getPage(n);
+      const viewport = p.page.getViewport({ scale });
+      // 頁面實際尺寸可能與第一頁不同
+      p.baseW = viewport.width / scale;
+      p.baseH = viewport.height / scale;
+      p.el.style.width = `${Math.floor(viewport.width)}px`;
+      p.el.style.height = `${Math.floor(viewport.height)}px`;
+
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.floor(viewport.width * dpr);
+      canvas.height = Math.floor(viewport.height * dpr);
+      canvas.style.width = `${Math.floor(viewport.width)}px`;
+      canvas.style.height = `${Math.floor(viewport.height)}px`;
+
+      p.task = p.page.render({
+        canvas,
+        viewport,
+        transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : undefined,
+      });
+      try {
+        await p.task.promise;
+        if (p.rendered === scale) p.el.replaceChildren(canvas);
+      } catch (err) {
+        if ((err as Error)?.name !== 'RenderingCancelledException') console.error(err);
+      }
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-pdf-viewer]').forEach((el) => new Viewer(el).init());
+</script>
+
+<style>
+  .pdfv {
+    border: 1px solid var(--c-line);
+    border-radius: var(--radius);
+    background: var(--c-surface);
+    overflow: hidden;
+  }
+  .pdfv__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-6);
+    padding: var(--space-2) var(--space-4);
+    background: var(--c-paper);
+    border-bottom: 1px solid var(--c-line);
+    font-size: var(--fs-sm);
+  }
+  .pdfv__pages {
+    min-width: 7em;
+    color: var(--c-ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .pdfv__zoom {
+    display: flex;
+    border: 1px solid var(--c-line);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .pdfv__zoom button {
+    min-width: 2.25rem;
+    height: 2rem;
+    padding: 0 var(--space-2);
+    border: 0;
+    background: none;
+    color: var(--c-ink);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+  }
+  .pdfv__zoom button + button {
+    border-left: 1px solid var(--c-line);
+  }
+  .pdfv__zoom button:hover {
+    background: var(--c-surface);
+  }
+  .pdfv__zoom .pdfv__zoom-level {
+    min-width: 3.75rem;
+  }
+  .pdfv__links {
+    display: flex;
+    gap: var(--space-4);
+  }
+  .pdfv__scroller {
+    height: min(85vh, 1100px);
+    overflow: auto;
+    /* 固定保留捲軸空間，避免捲軸出現後寬度改變卻未觸發 ResizeObserver */
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+  }
+  .pdfv__doc {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+    min-width: min-content;
+    padding: var(--space-4);
+  }
+  .pdfv__doc :global(.pdfv__page) {
+    flex: none;
+    background: #fff;
+    box-shadow: 0 1px 3px rgb(58 56 53 / 0.12);
+  }
+  .pdfv__doc :global(canvas) {
+    display: block;
+  }
+  .pdfv :global(.pdfv__fallback) {
+    padding: var(--space-12) var(--space-6);
+    color: var(--c-ink-soft);
+    text-align: center;
+  }
+  @media (max-width: 640px) {
+    .pdfv__scroller {
+      height: 75vh;
+    }
+    .pdfv__links {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  }
+</style>

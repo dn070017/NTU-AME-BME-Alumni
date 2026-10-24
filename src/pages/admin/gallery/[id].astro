@@ -1,0 +1,26 @@
+---
+import { eq } from 'drizzle-orm';
+import Admin from '../../../layouts/Admin.astro';
+import AlbumEditor from '../../../components/admin/AlbumEditor';
+import { db, schema } from '../../../db';
+import { albumPhotos } from '../../../lib/albums';
+import { parseId } from '../../../lib/api';
+import { isoDate } from '../../../lib/format';
+
+const id = parseId(Astro.params.id);
+const [row] = id ? await db.select().from(schema.albums).where(eq(schema.albums.id, id)).limit(1) : [];
+if (!id || !row) return Astro.rewrite('/404');
+
+const album = {
+  id: row.id,
+  title: row.title,
+  description: row.description,
+  published: row.published,
+  publishedAt: isoDate(row.publishedAt),
+  coverPhotoId: row.coverPhotoId,
+};
+const photos = (await albumPhotos(id)).map(({ id, key, thumbKey, width, height }) => ({ id, key, thumbKey, width, height }));
+---
+<Admin title={row.title}>
+  <AlbumEditor client:only="react" album={album} photos={photos} />
+</Admin>

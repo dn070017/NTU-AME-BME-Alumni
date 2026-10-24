@@ -1,0 +1,20 @@
+[workspace]
+authors = ["dn070017 <dn070017@gmail.com>"]
+channels = ["conda-forge"]
+name = "NTU-AME-BME-Alumni"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+install = "bun install"
+dev = "bun run dev"
+build = "bun run build"
+preview = "bun run preview"
+scrape = "bun scripts/scrape.ts"
+import-local = "bun scripts/import.ts"
+import-remote = "bun scripts/import.ts --remote"
+deploy = "bun run deploy"
+
+[dependencies]
+nodejs = "22.*"
+bun = ">=1.4.2,<2"

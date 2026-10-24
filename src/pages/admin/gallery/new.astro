@@ -1,0 +1,10 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import AlbumEditor from '../../../components/admin/AlbumEditor';
+import { isoDate } from '../../../lib/format';
+
+const album = { title: '', description: null, published: true, publishedAt: isoDate(new Date()), coverPhotoId: null };
+---
+<Admin title="新增相簿">
+  <AlbumEditor client:only="react" album={album} photos={[]} />
+</Admin>

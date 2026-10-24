@@ -1,0 +1,62 @@
+---
+import '../styles/global.css';
+import '../styles/admin.css';
+import { SITE_NAME } from '../lib/nav';
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+const path = Astro.url.pathname;
+
+const NAV = [
+  { href: '/admin', label: '總覽', exact: true },
+  { href: '/admin/announcements', label: '活動公告' },
+  { href: '/admin/interviews', label: '系友訪談' },
+  { href: '/admin/lectures', label: '系友演講' },
+  { href: '/admin/gallery', label: '精彩點滴' },
+  { href: '/admin/resources', label: '相關資料' },
+  { href: '/admin/sponsor', label: '商品贊助' },
+];
+const isActive = (item: (typeof NAV)[number]) =>
+  item.exact ? path === item.href : path === item.href || path.startsWith(`${item.href}/`);
+---
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title}｜後台｜{SITE_NAME}</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600&display=swap"
+    />
+  </head>
+  <body class="admin">
+    <header class="admin-bar">
+      <div class="admin-bar__inner">
+        <a class="admin-bar__brand" href="/admin">
+          <img src="/images/logo-a-nav.webp" width="180" height="140" alt="" />
+          <span>系友會後台</span>
+        </a>
+        <nav class="admin-bar__nav" aria-label="後台選單">
+          {NAV.map((item) => (
+            <a href={item.href} aria-current={isActive(item) ? 'page' : undefined}>{item.label}</a>
+          ))}
+        </nav>
+        <div class="admin-bar__user">
+          <span>{Astro.locals.adminEmail}</span>
+          <a href="/" target="_blank" rel="noopener">檢視網站</a>
+        </div>
+      </div>
+    </header>
+    <main class="admin-main">
+      <slot />
+    </main>
+  </body>
+</html>

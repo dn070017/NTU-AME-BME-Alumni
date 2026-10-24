@@ -1,0 +1,27 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="找不到頁面">
+  <section class="container nf">
+    <span class="eyebrow">404</span>
+    <h1>找不到這個頁面</h1>
+    <p>頁面可能已移除或網址有誤。</p>
+    <a class="btn" href="/">回到首頁</a>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    padding: var(--space-16) 0;
+    text-align: center;
+  }
+  h1 {
+    margin: var(--space-3) 0 var(--space-4);
+    font-size: var(--fs-xl);
+    letter-spacing: 0.1em;
+  }
+  p {
+    margin-bottom: var(--space-8);
+    color: var(--c-ink-soft);
+  }
+</style>

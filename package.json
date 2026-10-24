@@ -1,0 +1,48 @@
+{
+  "name": "ntu-ame-bme-alumni",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "wrangler dev",
+    "check": "astro check",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:remote": "wrangler d1 migrations apply alumni-db --remote",
+    "db:migrate:local": "wrangler d1 migrations apply alumni-db --local",
+    "cf-typegen": "wrangler types",
+    "deploy": "astro build && wrangler deploy"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^14.4.2",
+    "@astrojs/react": "^7.1.1",
+    "@tiptap/extension-image": "^3.32.0",
+    "@tiptap/extension-youtube": "^3.32.0",
+    "@tiptap/extensions": "^3.32.0",
+    "@tiptap/pm": "^3.32.0",
+    "@tiptap/react": "^3.32.0",
+    "@tiptap/starter-kit": "^3.32.0",
+    "astro": "^7.4.2",
+    "drizzle-orm": "^0.45.4",
+    "jose": "^6.2.13",
+    "lucide-react": "^1.61.0",
+    "pdfjs-dist": "^6.4.299",
+    "photoswipe": "^5.4.4",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@types/bun": "^1.4.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/sanitize-html": "^2.16.2",
+    "cheerio": "^1.2.0",
+    "drizzle-kit": "^0.31.11",
+    "sanitize-html": "^2.18.1",
+    "sharp": "^0.35.5",
+    "typescript": "^6",
+    "wrangler": "^4.152.0"
+  }
+}

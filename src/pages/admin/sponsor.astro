@@ -1,0 +1,13 @@
+---
+import { asc } from 'drizzle-orm';
+import Admin from '../../layouts/Admin.astro';
+import ProductManager from '../../components/admin/ProductManager';
+import { db, schema } from '../../db';
+
+const products = (
+  await db.select().from(schema.products).orderBy(asc(schema.products.sortOrder), asc(schema.products.id))
+).map(({ id, name, description, price, imageKey, visible }) => ({ id, name, description, price, imageKey, visible }));
+---
+<Admin title="商品贊助">
+  <ProductManager client:load products={products} />
+</Admin>

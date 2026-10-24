@@ -1,0 +1,8 @@
+---
+import DocView from '../../components/DocView.astro';
+import { getPublishedDoc } from '../../lib/documents';
+
+const doc = await getPublishedDoc('resource', Astro.params.id);
+if (!doc) return Astro.rewrite('/404');
+---
+<DocView section="resources" doc={doc} />

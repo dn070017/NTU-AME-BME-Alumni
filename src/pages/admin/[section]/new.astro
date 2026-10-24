@@ -1,0 +1,15 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import PostEditor from '../../../components/admin/PostEditor';
+import { isoDate } from '../../../lib/format';
+import { isPostSection, POST_SECTIONS } from '../../../lib/sections';
+
+const { section } = Astro.params;
+if (!isPostSection(section)) return Astro.rewrite('/404');
+const { type, label } = POST_SECTIONS[section];
+
+const post = { title: '', contentHtml: '', coverKey: null, published: true, publishedAt: isoDate(new Date()) };
+---
+<Admin title={`新增${label}`}>
+  <PostEditor client:only="react" section={section} sectionLabel={label} type={type} post={post} />
+</Admin>

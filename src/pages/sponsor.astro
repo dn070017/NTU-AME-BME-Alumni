@@ -1,0 +1,143 @@
+---
+import { asc, eq } from 'drizzle-orm';
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { db, schema } from '../db';
+import { mediaUrl } from '../lib/format';
+
+const products = await db
+  .select()
+  .from(schema.products)
+  .where(eq(schema.products.visible, true))
+  .orderBy(asc(schema.products.sortOrder), asc(schema.products.id));
+
+const price = (n: number) => n.toLocaleString('zh-TW');
+---
+<Base title="商品贊助" description="中華民國臺灣大學生機農機系友會紀念商品。">
+  <PageHeader eyebrow="Sponsor" title="商品贊助" lead="中華民國臺灣大學生機農機系友會紀念商品。" />
+
+  <section class="container shop">
+    {products.length === 0 ? (
+      <p class="shop__empty">目前尚無商品。</p>
+    ) : (
+      <ul class="shelf">
+        {products.map((p, i) => (
+          <li class="item" data-reveal style={`--reveal-delay: ${Math.min(i, 6) * 0.06}s`}>
+            <div class="item__img">
+              {p.imageKey ? (
+                <img src={mediaUrl(p.imageKey)} alt={p.name} loading={i < 4 ? 'eager' : 'lazy'} />
+              ) : (
+                <span class="item__noimg">{p.name}</span>
+              )}
+            </div>
+            <div class="item__info">
+              <h2 class="item__name">{p.name}</h2>
+              <p class="item__price"><span>NT$</span>{price(p.price)}</p>
+            </div>
+            {p.description && <p class="item__desc">{p.description}</p>}
+          </li>
+        ))}
+      </ul>
+    )}
+
+    <p class="shop__note">
+      線上購買功能即將開放。如有任何問題，歡迎來信
+      <a href="mailto:amebimealumni@gmail.com">amebimealumni@gmail.com</a>。
+    </p>
+  </section>
+</Base>
+
+<style>
+  .shop {
+    padding: var(--space-12) 0 var(--space-16);
+  }
+  .shop__empty {
+    color: var(--c-ink-soft);
+  }
+  .shelf {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+    gap: var(--space-12) var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .item__img {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 4 / 5;
+    padding: var(--space-8);
+    background: var(--c-paper);
+    border: 1px solid var(--c-line);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .item__img img {
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.8s var(--ease);
+  }
+  .item:hover .item__img img {
+    transform: scale(1.04);
+  }
+  .item__noimg {
+    color: var(--c-ink-soft);
+    font-size: var(--fs-sm);
+  }
+  .item__info {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+  }
+  .item__name {
+    font-size: var(--fs-md);
+    font-weight: 500;
+    line-height: 1.6;
+    letter-spacing: 0.06em;
+  }
+  .item__price {
+    margin: 0;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .item__price span {
+    margin-right: 0.2em;
+    color: var(--c-ink-soft);
+    font-size: var(--fs-xs);
+    font-weight: 400;
+  }
+  .item__desc {
+    margin: var(--space-1) 0 0;
+    color: var(--c-ink-soft);
+    font-size: var(--fs-sm);
+    line-height: 1.8;
+    white-space: pre-line;
+  }
+  .shop__note {
+    margin: var(--space-16) 0 0;
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--c-line);
+    color: var(--c-ink-soft);
+    font-size: var(--fs-sm);
+    text-align: center;
+  }
+  @media (max-width: 640px) {
+    .shelf {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-8) var(--space-4);
+    }
+    .item__img {
+      padding: var(--space-4);
+    }
+    .item__info {
+      flex-direction: column;
+      gap: 0;
+    }
+    .item__name {
+      font-size: var(--fs-sm);
+    }
+  }
+</style>

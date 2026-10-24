@@ -1,0 +1,68 @@
+---
+import { count, desc, eq } from 'drizzle-orm';
+import Admin from '../../../layouts/Admin.astro';
+import { db, schema } from '../../../db';
+import { displayDate, mediaUrl } from '../../../lib/format';
+
+const a = schema.albums;
+const albums = await db
+  .select({ id: a.id, title: a.title, published: a.published, publishedAt: a.publishedAt, coverPhotoId: a.coverPhotoId })
+  .from(a)
+  .orderBy(desc(a.publishedAt), desc(a.id));
+
+// 照片數與封面縮圖（未指定封面時用第一張）
+const photos = await db
+  .select({ id: schema.photos.id, albumId: schema.photos.albumId, thumbKey: schema.photos.thumbKey, sortOrder: schema.photos.sortOrder })
+  .from(schema.photos)
+  .orderBy(schema.photos.sortOrder, schema.photos.id);
+const byAlbum = Map.groupBy(photos, (p) => p.albumId);
+const rows = albums.map((al) => {
+  const list = byAlbum.get(al.id) ?? [];
+  const cover = list.find((p) => p.id === al.coverPhotoId) ?? list[0];
+  return { ...al, count: list.length, coverKey: cover?.thumbKey };
+});
+
+const deleted = Astro.url.searchParams.has('deleted');
+---
+<Admin title="精彩點滴">
+  <div class="admin-head">
+    <h1>精彩點滴</h1>
+    <a class="btn btn--solid" href="/admin/gallery/new">新增相簿</a>
+  </div>
+
+  {deleted && <p class="notice">相簿已刪除。</p>}
+
+  <div class="table-wrap">
+    {rows.length === 0 ? (
+      <p class="empty">尚無相簿，點選「新增相簿」開始。</p>
+    ) : (
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="table__thumb"><span class="visually-hidden">封面</span></th>
+            <th>相簿</th>
+            <th class="num">活動日期</th>
+            <th class="num">照片</th>
+            <th>狀態</th>
+            <th><span class="visually-hidden">操作</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr>
+              <td class="table__thumb">{r.coverKey ? <img src={mediaUrl(r.coverKey)} alt="" loading="lazy" /> : <span />}</td>
+              <td class="table__title"><a href={`/admin/gallery/${r.id}`}>{r.title}</a></td>
+              <td class="num">{displayDate(r.publishedAt)}</td>
+              <td class="num">{r.count} 張</td>
+              <td>{r.published ? <span class="badge badge--live">公開</span> : <span class="badge badge--draft">草稿</span>}</td>
+              <td class="table__actions">
+                <a href={`/admin/gallery/${r.id}`}>編輯</a>
+                <a href={`/gallery/${r.id}`} target="_blank" rel="noopener">檢視</a>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+  </div>
+</Admin>

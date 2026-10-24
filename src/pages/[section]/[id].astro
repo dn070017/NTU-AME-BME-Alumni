@@ -1,0 +1,138 @@
+---
+import { and, asc, desc, eq, gt, lt, or } from 'drizzle-orm';
+import Base from '../../layouts/Base.astro';
+import { db, schema } from '../../db';
+import { parseId } from '../../lib/api';
+import { displayDate, isoDate, mediaUrl } from '../../lib/format';
+import { isPostSection, POST_SECTIONS } from '../../lib/sections';
+
+const { section } = Astro.params;
+const id = parseId(Astro.params.id);
+if (!isPostSection(section) || !id) return Astro.rewrite('/404');
+const { type, label, eyebrow } = POST_SECTIONS[section];
+
+const visible = and(eq(schema.posts.type, type), eq(schema.posts.published, true));
+const [post] = await db.select().from(schema.posts).where(and(visible, eq(schema.posts.id, id))).limit(1);
+if (!post) return Astro.rewrite('/404');
+
+// 前後篇（依上版日期，同日依 id）
+const p = schema.posts;
+const newerCond = or(gt(p.publishedAt, post.publishedAt), and(eq(p.publishedAt, post.publishedAt), gt(p.id, post.id)));
+const olderCond = or(lt(p.publishedAt, post.publishedAt), and(eq(p.publishedAt, post.publishedAt), lt(p.id, post.id)));
+const [[newer], [older]] = await Promise.all([
+  db.select({ id: p.id, title: p.title }).from(p).where(and(visible, newerCond)).orderBy(asc(p.publishedAt), asc(p.id)).limit(1),
+  db.select({ id: p.id, title: p.title }).from(p).where(and(visible, olderCond)).orderBy(desc(p.publishedAt), desc(p.id)).limit(1),
+]);
+
+// 封面若未出現在內文中（另外上傳），顯示在文章開頭
+const showCover = post.coverKey && !post.contentHtml.includes(mediaUrl(post.coverKey));
+---
+<Base title={post.title} description={post.excerpt ?? undefined} image={post.coverKey ? mediaUrl(post.coverKey) : undefined}>
+  <article class="article container">
+    <header class="article__head">
+      <a class="eyebrow article__section" href={`/${section}`}>{eyebrow} · {label}</a>
+      <h1>{post.title}</h1>
+      <time datetime={isoDate(post.publishedAt)}>{displayDate(post.publishedAt)}</time>
+    </header>
+
+    {showCover && <img class="article__cover" src={mediaUrl(post.coverKey!)} alt="" />}
+
+    <div class="prose article__body" set:html={post.contentHtml} />
+
+    <nav class="article__nav" aria-label="其他文章">
+      <div>
+        {older && (
+          <a href={`/${section}/${older.id}`}>
+            <span>上一篇</span>
+            {older.title}
+          </a>
+        )}
+      </div>
+      <div class="article__nav-next">
+        {newer && (
+          <a href={`/${section}/${newer.id}`}>
+            <span>下一篇</span>
+            {newer.title}
+          </a>
+        )}
+      </div>
+    </nav>
+    <p class="article__back"><a class="btn" href={`/${section}`}>回到{label}列表</a></p>
+  </article>
+</Base>
+
+<style>
+  .article {
+    max-width: 46rem;
+    padding: var(--space-16) 0;
+  }
+  .article__head {
+    margin-bottom: var(--space-12);
+    padding-bottom: var(--space-8);
+    border-bottom: 1px solid var(--c-line);
+  }
+  .article__section {
+    text-decoration: none;
+  }
+  .article__section:hover {
+    color: var(--c-ink);
+  }
+  .article__head h1 {
+    margin: var(--space-3) 0 var(--space-4);
+    font-size: var(--fs-xl);
+    letter-spacing: 0.08em;
+  }
+  .article__head time {
+    color: var(--c-ink-soft);
+    font-size: var(--fs-sm);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+  }
+  .article__cover {
+    width: 100%;
+    margin-bottom: var(--space-12);
+    border-radius: 3px;
+  }
+  .article__nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-6);
+    margin-top: var(--space-16);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--c-line);
+  }
+  .article__nav a {
+    display: grid;
+    gap: var(--space-1);
+    color: var(--c-ink);
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    text-decoration: none;
+  }
+  .article__nav a:hover {
+    color: var(--c-slate-ink);
+  }
+  .article__nav span {
+    color: var(--c-ink-soft);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.12em;
+  }
+  .article__nav-next {
+    text-align: right;
+  }
+  .article__back {
+    margin-top: var(--space-12);
+    text-align: center;
+  }
+  @media (max-width: 640px) {
+    .article {
+      padding: var(--space-12) 0;
+    }
+    .article__nav {
+      grid-template-columns: 1fr;
+    }
+    .article__nav-next {
+      text-align: left;
+    }
+  }
+</style>

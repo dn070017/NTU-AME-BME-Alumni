@@ -1,0 +1,57 @@
+---
+import Base from '../layouts/Base.astro';
+import PdfViewer from './PdfViewer.astro';
+import type { Document } from '../db/schema';
+import { displayDate, isoDate, mediaUrl } from '../lib/format';
+import { DOC_SECTIONS, type DocSection } from '../lib/sections';
+
+interface Props {
+  section: DocSection;
+  doc: Document;
+}
+
+const { section, doc } = Astro.props;
+const { label, eyebrow } = DOC_SECTIONS[section];
+---
+<Base title={doc.title}>
+  <article class="doc-view container">
+    <header class="doc-view__head">
+      <a class="eyebrow doc-view__section" href={`/${section}`}>{eyebrow} · {label}</a>
+      <h1>{doc.title}</h1>
+      <time datetime={isoDate(doc.publishedAt)}>{displayDate(doc.publishedAt)}</time>
+    </header>
+    <PdfViewer url={mediaUrl(doc.pdfKey)} title={doc.title} />
+    <p class="doc-view__back"><a class="btn" href={`/${section}`}>回到{label}列表</a></p>
+  </article>
+</Base>
+
+<style>
+  .doc-view {
+    max-width: 60rem;
+    padding: var(--space-12) 0 var(--space-16);
+  }
+  .doc-view__head {
+    margin-bottom: var(--space-8);
+  }
+  .doc-view__section {
+    text-decoration: none;
+  }
+  .doc-view__section:hover {
+    color: var(--c-ink);
+  }
+  .doc-view__head h1 {
+    margin: var(--space-3) 0 var(--space-2);
+    font-size: var(--fs-xl);
+    letter-spacing: 0.06em;
+  }
+  .doc-view__head time {
+    color: var(--c-ink-soft);
+    font-size: var(--fs-sm);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+  }
+  .doc-view__back {
+    margin-top: var(--space-12);
+    text-align: center;
+  }
+</style>

@@ -1,0 +1,36 @@
+---
+import { desc, eq } from 'drizzle-orm';
+import Admin from '../../layouts/Admin.astro';
+import DocManager from './DocManager';
+import { db, schema } from '../../db';
+import { isoDate } from '../../lib/format';
+import { DOC_SECTIONS, type DocSection } from '../../lib/sections';
+
+interface Props {
+  section: DocSection;
+}
+
+const { section } = Astro.props;
+const { type, label } = DOC_SECTIONS[section];
+
+const docs = (
+  await db
+    .select()
+    .from(schema.documents)
+    .where(eq(schema.documents.type, type))
+    .orderBy(desc(schema.documents.publishedAt), desc(schema.documents.id))
+).map((d) => ({
+  id: d.id,
+  title: d.title,
+  pdfKey: d.pdfKey,
+  pdfSize: d.pdfSize,
+  published: d.published,
+  publishedAt: isoDate(d.publishedAt),
+}));
+---
+<Admin title={label}>
+  <div class="admin-head">
+    <h1>{label}</h1>
+  </div>
+  <DocManager client:load section={section} type={type} today={isoDate(new Date())} docs={docs} />
+</Admin>
