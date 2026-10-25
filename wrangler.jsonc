@@ -6,6 +6,15 @@
 	"compatibility_flags": [
 		"nodejs_compat"
 	],
+	// 舊網址暫時保留；設定 routes 後 wrangler 預設會關閉 workers.dev，需明確開啟
+	"workers_dev": true,
+	// 自訂網域：部署時自動建立 DNS 紀錄與憑證
+	"routes": [
+		{
+			"pattern": "ntu-ame-bime-alumni.org",
+			"custom_domain": true
+		}
+	],
 	"assets": {
 		"directory": "./dist",
 		"binding": "ASSETS"

@@ -4,7 +4,7 @@ import cloudflare from '@astrojs/cloudflare';
 import react from '@astrojs/react';
 
 export default defineConfig({
-  site: 'https://ntu-ame-bme-alumni.dn070017.workers.dev', // TODO: 正式網域確定後更新
+  site: 'https://ntu-ame-bime-alumni.org',
   output: 'server',
   // 登入交由 Cloudflare Access，不需要 Astro sessions（避免多一個 KV binding）
   session: false,

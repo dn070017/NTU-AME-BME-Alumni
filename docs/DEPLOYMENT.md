@@ -55,22 +55,22 @@ pixi run bun run db:migrate:remote
 pixi run deploy
 ```
 
-完成後會顯示 `https://ntu-ame-bme-alumni.<帳號>.workers.dev` 網址。此時前台可瀏覽，**後台尚無法使用**（需完成第 6、7 步，綁定網域並設定 Access 後才能登入）。
+完成後會顯示 `https://ntu-ame-bme-alumni.<帳號>.workers.dev` 網址。此時前台可瀏覽，**後台尚無法使用**（需完成第 7 步設定 Access 後才能登入）。
 
-### 6. 綁定自訂網域（選擇性）
+### 6. 綁定自訂網域
 
-Cloudflare 後台 → Workers & Pages → `ntu-ame-bme-alumni` → Settings → Domains & Routes → Add → Custom Domain，輸入例如 `alumni.example.org`。
+目前正式網域為 `ntu-ame-bime-alumni.org`（已加入同一個 Cloudflare 帳號）。綁定寫在 `wrangler.jsonc`，部署時 wrangler 會自動建立 DNS 紀錄與 SSL 憑證，不需在後台手動設定：
 
-- 網域的 DNS 必須由 Cloudflare 代管（該網域需加入同一個 Cloudflare 帳號）。
-- 若使用的是學校網域（例如 `*.ntu.edu.tw`）而 DNS 不在 Cloudflare，需另外與網管討論。
-- 不綁自訂網域也可以：直接使用 `https://ntu-ame-bme-alumni.<帳號>.workers.dev`，第 7 步的 Access 同樣能只保護後台路徑（已實測）。
+```jsonc
+"routes": [
+  { "pattern": "ntu-ame-bime-alumni.org", "custom_domain": true }
+]
+```
 
-綁定後請一併更新：
-
-- `astro.config.mjs` 的 `site`（目前是 `https://example.com`）。
-- 若 Access 只設定了自訂網域，建議在 `wrangler.jsonc` 加上 `"workers_dev": false` 關閉 `workers.dev` 網址，避免同一網站有兩個入口（未受 Access 保護的入口，後台會一律回傳 403）。只在 Cloudflare 後台按 Disable 沒用，下次部署會被設定檔重新開啟。
-
-修改後重新執行 `pixi run deploy`。
+- 網域的 DNS 必須由 Cloudflare 代管（該網域需加入同一個 Cloudflare 帳號）。第一次綁定後憑證簽發可能需要幾分鐘。
+- 更換網域時，一併更新 `astro.config.mjs` 的 `site`，以及第 7 步 Access 應用程式的 hostname。
+- 目前仍保留 `https://ntu-ame-bme-alumni.<帳號>.workers.dev` 舊網址（前台可瀏覽；Access 只設定在自訂網域，所以舊網址的後台會一律回傳 403）。確認不再需要時，將 `wrangler.jsonc` 的 `"workers_dev": true` 改成 `false` 後重新部署即可關閉。注意：設定了 `routes` 後，若沒寫 `workers_dev`，wrangler 預設會關閉舊網址；只在 Cloudflare 後台按 Disable 也沒用，下次部署會依設定檔重設。
+- 若需要 `www.ntu-ame-bime-alumni.org`：在 DNS 新增 `www` 的 AAAA 紀錄 `100::`（Proxied），再到 **Rules → Redirect Rules** 以範本「Redirect from WWW to root」導向根網域。
 
 ### 7. 設定後台登入（Cloudflare Access）
 
@@ -108,7 +108,7 @@ Cloudflare 後台 → Workers & Pages → `ntu-ame-bme-alumni` → Settings → 
    | 依你的網址填（例如 `alumni`；若網址就是根網域則留空） | 從下拉選單選你的網域 | `admin` |
    | 同上 | 同上 | `api/admin` |
 
-   使用 `workers.dev` 網址時，hostname 填 `ntu-ame-bme-alumni.<帳號>.workers.dev`，Path 同樣是 `admin` 與 `api/admin`。新版介面在 Self-hosted and private 之後會先詢問目的地類型（Private destination／Workers／Public DNS／Service auth）；自訂網域選 **Public DNS**。
+   目前設定為：Domain 選 `ntu-ame-bime-alumni.org`、Subdomain 留空，Path 分別為 `admin` 與 `api/admin`。（若只使用 `workers.dev` 網址，hostname 填 `ntu-ame-bme-alumni.<帳號>.workers.dev`，Path 相同。）新版介面在 Self-hosted and private 之後會先詢問目的地類型（Private destination／Workers／Public DNS／Service auth）；自訂網域選 **Public DNS**。
 
    Path 會一併保護其下所有子路徑（例如 `/admin/gallery/3`）。**不要**保護整個網域，否則一般訪客也會被要求登入。
 
