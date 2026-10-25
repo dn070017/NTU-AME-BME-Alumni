@@ -28,6 +28,7 @@
 * 字體：中文 `Noto Sans TC`，英數 `Inter`；字重以 400/500 為主，標題 600，避免過粗
 * 動畫：僅限淡入、輕微位移（進場）、hover 過渡；首頁區塊以 CSS `scroll-snap` 實作一格一區塊
 * 素材注意：Logo PNG 解析度僅約 206px，首頁大尺寸使用時應嘗試從 `assets/Logo/Logos.pptx` 取出高解析版本
+* 首頁 Logo 配置：系友會區塊標題上方為 `assets/Logo/Logo-Main.png`；捐款資訊區塊標題上方並排 `Logo-A.png` 與 `Logo-B.png`
 
 # Website Content
 ## Navbar:

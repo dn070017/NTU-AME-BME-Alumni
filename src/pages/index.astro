@@ -40,10 +40,7 @@ const SECTIONS = [
   <section id="association" class="panel panel--left">
     <div class="panel__inner container">
       <div class="panel__text" data-reveal>
-        <div class="assoc-logos">
-          <img src="/images/logo-a.webp" width="640" height="496" alt="" />
-          <img src="/images/logo-b.webp" width="718" height="720" alt="" />
-        </div>
+        <img class="assoc-logo" src="/images/logo-main.webp" width="724" height="800" alt="" />
         <span class="eyebrow">NTU AME · BME Alumni Association</span>
         <h1 class="panel__title">中華民國臺灣大學<br />生機農機系友會</h1>
         <p>
@@ -114,6 +111,10 @@ const SECTIONS = [
   <section id="donate" class="panel panel--left">
     <div class="panel__inner container">
       <div class="panel__text" data-reveal>
+        <div class="donate-logos">
+          <img src="/images/logo-a.webp" width="640" height="496" alt="" />
+          <img src="/images/logo-b.webp" width="718" height="720" alt="" />
+        </div>
         <span class="eyebrow">Donate</span>
         <h2 class="panel__title">捐款資訊</h2>
         <p>您的捐款將用於系友活動、學術交流與母系發展。可選擇信用卡線上捐款，或以匯款、轉帳方式捐款。</p>
@@ -351,13 +352,19 @@ const SECTIONS = [
   }
 
   /* 區塊二：宗旨卡片，參照 Logo B 的曬衣繩相片意象 */
-  .assoc-logos {
+  .assoc-logo {
+    display: block;
+    width: auto;
+    height: 136px;
+    margin-bottom: var(--space-6);
+  }
+  .donate-logos {
     display: flex;
     align-items: center;
     gap: var(--space-6);
     margin-bottom: var(--space-6);
   }
-  .assoc-logos img {
+  .donate-logos img {
     width: auto;
     height: 104px;
   }
@@ -599,7 +606,10 @@ const SECTIONS = [
     .panel__text--end .actions {
       justify-content: flex-start;
     }
-    .assoc-logos img {
+    .assoc-logo {
+      height: 104px;
+    }
+    .donate-logos img {
       height: 80px;
     }
     .mission {
