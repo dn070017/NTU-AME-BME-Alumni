@@ -121,8 +121,11 @@ const SECTIONS = [
 
         <div class="donate-online">
           <h3 class="donate__h">信用卡捐款</h3>
-          <p class="donate__note">透過綠界支付，無須手續費。</p>
-          <a class="btn btn--solid" href="https://cart.cashier.ecpay.com.tw/qp/xqXC" target="_blank" rel="noopener">前往信用卡捐款</a>
+          <p class="donate__note">可透過綠界或藍新金流捐款。綠界僅支持本地（臺灣發行）信用卡，海外信用卡請使用藍新金流。</p>
+          <div class="donate__links">
+            <a class="btn btn--solid" href="https://cart.cashier.ecpay.com.tw/qp/xqXC" target="_blank" rel="noopener">綠界金流捐款（限本地）</a>
+            <a class="btn" href="https://core.newebpay.com/EPG/MS3839611642/LgV5AB" target="_blank" rel="noopener">藍新金流捐款</a>
+          </div>
         </div>
       </div>
 
@@ -445,6 +448,11 @@ const SECTIONS = [
     padding-top: var(--space-8);
     border-top: 1px solid var(--c-line);
     max-width: 34em;
+  }
+  .donate__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
   }
   .donate__h {
     font-size: var(--fs-lg);

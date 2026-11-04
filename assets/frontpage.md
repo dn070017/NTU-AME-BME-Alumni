@@ -26,7 +26,8 @@
 
 # 捐款資訊
 > 標題上方並排放置 assets/Logo/Logo-A.png 與 assets/Logo/Logo-B.png
-* 系友會捐款(使用信用卡透過綠界支付，無須手續費)：https://cart.cashier.ecpay.com.tw/qp/xqXC
+* 系友會捐款(使用信用卡透過綠界支付，僅支持本地（臺灣發行）信用卡)：https://cart.cashier.ecpay.com.tw/qp/xqXC
+* 系友會捐款(使用藍新金流，海外信用卡請使用此管道)：https://core.newebpay.com/EPG/MS3839611642/LgV5AB
 * 系友會捐款(使用匯款或轉帳)
     * 戶名：中華民國臺灣大學生機農機系友會
     * 存戶帳號：0048-940-019374
