@@ -35,6 +35,7 @@
 * 左側：放 Logo 文字標（`assets/Logo/Logo-Text.png`），alttext: 中華民國臺灣大學生機農機系友會（點選以後回到首頁）
 * 右側
     * 首頁（點選以後回到首頁）
+    * 最新消息
     * 活動公告
     * 系友演講
     * 系友訪談
@@ -45,6 +46,9 @@
 ## Content of the Websites: 
 * 系友會
     * 內容參照 [assets/frontpage.md](./assets/frontpage.md)
+* 最新消息
+    * 內容格式與活動公告相同（目前尚無內容）
+    * 與活動公告共用資料表、編輯器與後台管理頁（後台「公告與消息」），文章可選擇發布在活動公告或最新消息，後台列表可篩選
 * 活動公告
     * 內容參照 https://www.bime.ntu.edu.tw/News_n_202717_sms_130164.html
     * 會需要有一個後台能夠管理並編輯內容
@@ -82,3 +86,4 @@
 * 後台登入：Cloudflare Access（Zero Trust）保護 `/admin` 與寫入 API，本地開發略過驗證
 * 既有內容：撰寫腳本將 bime.ntu.edu.tw 上的既有文章、PDF、照片抓取並暫存於 `assets/initial_data`，再匯入 D1/R2 作為初始資料
 * 商品贊助：資料欄位加入價格；暫不需要購買連結（後續將串接藍新金流，需等待審核）
+* 最新消息與活動公告：同一張 posts 資料表以 type 區分，後台合併管理；未來可能合併為同一個前台頁面（技術債 TODO 見 src/db/schema.ts）

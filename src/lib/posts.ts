@@ -2,6 +2,7 @@ import { env } from 'cloudflare:workers';
 import type { Post } from '../db/schema';
 import { badRequest, isDateString } from './api';
 import { parseTaipeiDate } from './format';
+import { isPostType } from './sections';
 import { excerptOf, mediaKeysIn, sanitizeHtml } from './sanitize';
 
 export type PostInput = {
@@ -24,7 +25,7 @@ export async function readPostInput(request: Request): Promise<PostInput | Respo
   }
 
   const { type, title, contentHtml, coverKey, published, publishedAt } = body;
-  if (type !== 'announcement' && type !== 'interview') return badRequest('未知的文章類型');
+  if (!isPostType(type)) return badRequest('未知的文章類型');
   if (typeof title !== 'string' || !title.trim()) return badRequest('請輸入標題');
   if (title.length > 200) return badRequest('標題請勿超過 200 字');
   if (typeof contentHtml !== 'string') return badRequest('內容格式錯誤');

@@ -18,7 +18,12 @@ export const posts = sqliteTable(
   'posts',
   {
     id: integer('id').primaryKey({ autoIncrement: true }),
-    type: text('type', { enum: ['announcement', 'interview'] }).notNull(),
+    // TODO(技術債): enum 目前只是 TypeScript 型別，D1 欄位是一般 TEXT，資料庫層並未限制可填的值
+    // （寫入時由 src/lib/posts.ts 的 isPostType 驗證）。之後應改為資料庫層的有限值，例如加上
+    // CHECK (type IN (...))；SQLite 無法直接對既有欄位加 CHECK，需重建資料表的 migration。
+    // 另外「最新消息」與「活動公告」未來可能合併成同一個前台頁面，屆時 type 可能改為分類標籤
+    // （例如 category），調整時一併考慮。單元設定見 src/lib/sections.ts。
+    type: text('type', { enum: ['announcement', 'news', 'interview'] }).notNull(),
     title: text('title').notNull(),
     excerpt: text('excerpt'),
     coverKey: text('cover_key'),

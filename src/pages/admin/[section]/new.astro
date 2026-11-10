@@ -2,14 +2,17 @@
 import Admin from '../../../layouts/Admin.astro';
 import PostEditor from '../../../components/admin/PostEditor';
 import { isoDate } from '../../../lib/format';
-import { isPostSection, POST_SECTIONS } from '../../../lib/sections';
+import { groupOptions, isPostAdminGroup, POST_ADMIN_GROUPS } from '../../../lib/sections';
 
-const { section } = Astro.params;
-if (!isPostSection(section)) return Astro.rewrite('/404');
-const { type, label } = POST_SECTIONS[section];
+const { section: group } = Astro.params;
+if (!isPostAdminGroup(group)) return Astro.rewrite('/404');
+const { label } = POST_ADMIN_GROUPS[group];
+const options = groupOptions(group);
+// 從篩選後的列表點「新增文章」時，預設為該單元
+const { type } = options.find((o) => o.section === Astro.url.searchParams.get('section')) ?? options[0];
 
 const post = { title: '', contentHtml: '', coverKey: null, published: true, publishedAt: isoDate(new Date()) };
 ---
-<Admin title={`新增${label}`}>
-  <PostEditor client:only="react" section={section} sectionLabel={label} type={type} post={post} />
+<Admin title={`新增文章｜${label}`}>
+  <PostEditor client:only="react" group={group} groupLabel={label} options={options} type={type} post={post} />
 </Admin>

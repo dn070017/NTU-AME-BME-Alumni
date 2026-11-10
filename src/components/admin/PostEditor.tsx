@@ -3,10 +3,15 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiFetch, uploadImage } from '../../lib/client/upload';
 import RichTextEditor from './RichTextEditor';
 
+type PostType = 'announcement' | 'news' | 'interview';
+
 type Props = {
-  section: string;
-  sectionLabel: string;
-  type: 'announcement' | 'interview';
+  /** 後台管理空間（/admin/<group>） */
+  group: string;
+  groupLabel: string;
+  /** 可發布的單元；超過一個時顯示「發布於」選單 */
+  options: readonly { section: string; type: PostType; label: string }[];
+  type: PostType;
   post: {
     id?: number;
     title: string;
@@ -19,7 +24,10 @@ type Props = {
 
 type Status = { kind: 'idle' } | { kind: 'saving' } | { kind: 'saved' } | { kind: 'error'; message: string };
 
-export default function PostEditor({ section, sectionLabel, type, post }: Props) {
+export default function PostEditor({ group, groupLabel, options, type: initialType, post }: Props) {
+  const [type, setType] = useState(initialType);
+  /** 已儲存的單元，用於「檢視」連結 */
+  const [savedType, setSavedType] = useState(initialType);
   const [title, setTitle] = useState(post.title);
   const [publishedAt, setPublishedAt] = useState(post.publishedAt);
   const [published, setPublished] = useState(post.published);
@@ -29,6 +37,7 @@ export default function PostEditor({ section, sectionLabel, type, post }: Props)
   const html = useRef(post.contentHtml);
   const coverInput = useRef<HTMLInputElement>(null);
   const isNew = post.id == null;
+  const sectionOf = (t: PostType) => options.find((o) => o.type === t)!.section;
 
   const touch = () => {
     setDirty(true);
@@ -43,23 +52,24 @@ export default function PostEditor({ section, sectionLabel, type, post }: Props)
       if (isNew) {
         const { id } = await apiFetch<{ id: number }>('/api/admin/posts', { method: 'POST', json: payload });
         setDirty(false);
-        window.location.replace(`/admin/${section}/${id}?created=1`);
+        window.location.replace(`/admin/${group}/${id}?created=1`);
         return;
       }
       await apiFetch(`/api/admin/posts/${post.id}`, { method: 'PUT', json: payload });
+      setSavedType(type);
       setDirty(false);
       setStatus({ kind: 'saved' });
     } catch (err) {
       showError(err instanceof Error ? err.message : String(err));
     }
-  }, [type, title, coverKey, published, publishedAt, isNew, section, post.id]);
+  }, [type, title, coverKey, published, publishedAt, isNew, group, post.id]);
 
   const remove = async () => {
     if (!window.confirm(`確定要刪除「${title || '未命名'}」？文章內的圖片也會一併刪除，無法復原。`)) return;
     try {
       await apiFetch(`/api/admin/posts/${post.id}`, { method: 'DELETE' });
       setDirty(false);
-      window.location.replace(`/admin/${section}?deleted=1`);
+      window.location.replace(`/admin/${group}?deleted=1`);
     } catch (err) {
       showError(err instanceof Error ? err.message : String(err));
     }
@@ -106,13 +116,13 @@ export default function PostEditor({ section, sectionLabel, type, post }: Props)
   return (
     <div className="editor">
       <div className="editor__bar">
-        <a className="editor__back" href={`/admin/${section}`}>
-          <ArrowLeft size={16} /> {sectionLabel}
+        <a className="editor__back" href={`/admin/${group}`}>
+          <ArrowLeft size={16} /> {groupLabel}
         </a>
         <div className="editor__actions">
           <StatusText status={status} dirty={dirty} />
           {!isNew && (
-            <a className="btn btn--ghost" href={`/${section}/${post.id}`} target="_blank" rel="noopener">
+            <a className="btn btn--ghost" href={`/${sectionOf(savedType)}/${post.id}`} target="_blank" rel="noopener">
               <ExternalLink size={16} /> 檢視
             </a>
           )}
@@ -140,7 +150,25 @@ export default function PostEditor({ section, sectionLabel, type, post }: Props)
         }}
       />
 
-      <div className="editor__meta">
+      <div className={options.length > 1 ? 'editor__meta editor__meta--section' : 'editor__meta'}>
+        {options.length > 1 && (
+          <label className="field">
+            <span>發布於</span>
+            <select
+              value={type}
+              onChange={(e) => {
+                setType(e.target.value as PostType);
+                touch();
+              }}
+            >
+              {options.map((o) => (
+                <option key={o.type} value={o.type}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label className="field">
           <span>上版日期</span>
           <input

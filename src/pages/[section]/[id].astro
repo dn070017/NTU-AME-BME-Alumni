@@ -4,16 +4,23 @@ import Base from '../../layouts/Base.astro';
 import { db, schema } from '../../db';
 import { parseId } from '../../lib/api';
 import { displayDate, isoDate, mediaUrl } from '../../lib/format';
-import { isPostSection, POST_SECTIONS } from '../../lib/sections';
+import { isPostSection, POST_SECTIONS, sectionOfType } from '../../lib/sections';
 
 const { section } = Astro.params;
 const id = parseId(Astro.params.id);
 if (!isPostSection(section) || !id) return Astro.rewrite('/404');
 const { type, label, eyebrow } = POST_SECTIONS[section];
 
-const visible = and(eq(schema.posts.type, type), eq(schema.posts.published, true));
-const [post] = await db.select().from(schema.posts).where(and(visible, eq(schema.posts.id, id))).limit(1);
+const [post] = await db
+  .select()
+  .from(schema.posts)
+  .where(and(eq(schema.posts.id, id), eq(schema.posts.published, true)))
+  .limit(1);
 if (!post) return Astro.rewrite('/404');
+// 文章在後台改了發布單元（例如活動公告 → 最新消息）時，舊網址轉到新單元
+if (post.type !== type) return Astro.redirect(`/${sectionOfType(post.type)}/${id}`, 301);
+
+const visible = and(eq(schema.posts.type, type), eq(schema.posts.published, true));
 
 // 前後篇（依上版日期，同日依 id）
 const p = schema.posts;

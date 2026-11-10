@@ -1,17 +1,22 @@
 ---
-import { desc, eq } from 'drizzle-orm';
+import { desc, inArray } from 'drizzle-orm';
 import Admin from '../../../layouts/Admin.astro';
 import { db, schema } from '../../../db';
 import { displayDate, mediaUrl } from '../../../lib/format';
-import { isPostSection, POST_SECTIONS } from '../../../lib/sections';
+import { groupOptions, isPostAdminGroup, POST_ADMIN_GROUPS, POST_SECTIONS, sectionOfType } from '../../../lib/sections';
 
-const { section } = Astro.params;
-if (!isPostSection(section)) return Astro.rewrite('/404');
-const { type, label } = POST_SECTIONS[section];
+// 網址為管理空間（例如 announcements 同時管理活動公告與最新消息），?section= 篩選單元
+const { section: group } = Astro.params;
+if (!isPostAdminGroup(group)) return Astro.rewrite('/404');
+const { label } = POST_ADMIN_GROUPS[group];
+const options = groupOptions(group);
+const filter = options.find((o) => o.section === Astro.url.searchParams.get('section'));
+const showSection = options.length > 1;
 
 const rows = await db
   .select({
     id: schema.posts.id,
+    type: schema.posts.type,
     title: schema.posts.title,
     coverKey: schema.posts.coverKey,
     published: schema.posts.published,
@@ -19,16 +24,28 @@ const rows = await db
     updatedAt: schema.posts.updatedAt,
   })
   .from(schema.posts)
-  .where(eq(schema.posts.type, type))
+  .where(inArray(schema.posts.type, filter ? [filter.type] : options.map((o) => o.type)))
   .orderBy(desc(schema.posts.publishedAt), desc(schema.posts.id));
 
 const deleted = Astro.url.searchParams.has('deleted');
+const newHref = filter ? `/admin/${group}/new?section=${filter.section}` : `/admin/${group}/new`;
 ---
 <Admin title={label}>
   <div class="admin-head">
     <h1>{label}</h1>
-    <a class="btn btn--solid" href={`/admin/${section}/new`}>新增文章</a>
+    <a class="btn btn--solid" href={newHref}>新增文章</a>
   </div>
+
+  {showSection && (
+    <nav class="filter" aria-label="篩選單元">
+      <a href={`/admin/${group}`} aria-current={!filter ? 'page' : undefined}>全部</a>
+      {options.map((o) => (
+        <a href={`/admin/${group}?section=${o.section}`} aria-current={filter?.section === o.section ? 'page' : undefined}>
+          {o.label}
+        </a>
+      ))}
+    </nav>
+  )}
 
   {deleted && <p class="notice">文章已刪除。</p>}
 
@@ -41,6 +58,7 @@ const deleted = Astro.url.searchParams.has('deleted');
           <tr>
             <th class="table__thumb"><span class="visually-hidden">封面</span></th>
             <th>標題</th>
+            {showSection && <th>發布單元</th>}
             <th class="num">上版日期</th>
             <th>狀態</th>
             <th class="num">最後修改</th>
@@ -53,15 +71,16 @@ const deleted = Astro.url.searchParams.has('deleted');
               <td class="table__thumb">
                 {r.coverKey ? <img src={mediaUrl(r.coverKey)} alt="" loading="lazy" /> : <span />}
               </td>
-              <td class="table__title"><a href={`/admin/${section}/${r.id}`}>{r.title}</a></td>
+              <td class="table__title"><a href={`/admin/${group}/${r.id}`}>{r.title}</a></td>
+              {showSection && <td class="table__section">{POST_SECTIONS[sectionOfType(r.type)].label}</td>}
               <td class="num">{displayDate(r.publishedAt)}</td>
               <td>
                 {r.published ? <span class="badge badge--live">公開</span> : <span class="badge badge--draft">草稿</span>}
               </td>
               <td class="num">{displayDate(r.updatedAt)}</td>
               <td class="table__actions">
-                <a href={`/admin/${section}/${r.id}`}>編輯</a>
-                <a href={`/${section}/${r.id}`} target="_blank" rel="noopener">檢視</a>
+                <a href={`/admin/${group}/${r.id}`}>編輯</a>
+                <a href={`/${sectionOfType(r.type)}/${r.id}`} target="_blank" rel="noopener">檢視</a>
               </td>
             </tr>
           ))}

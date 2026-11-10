@@ -2,14 +2,16 @@
 import { count, eq } from 'drizzle-orm';
 import Admin from '../../layouts/Admin.astro';
 import { db, schema } from '../../db';
+import type { Post } from '../../db/schema';
 
-const countPosts = (type: 'announcement' | 'interview') =>
+const countPosts = (type: Post['type']) =>
   db.select({ n: count() }).from(schema.posts).where(eq(schema.posts.type, type)).then((r) => r[0].n);
 
 const countDocs = (type: 'lecture' | 'resource') =>
   db.select({ n: count() }).from(schema.documents).where(eq(schema.documents.type, type)).then((r) => r[0].n);
 
-const [announcements, interviews, lectures, resources, albums, products] = await Promise.all([
+const [news, announcements, interviews, lectures, resources, albums, products] = await Promise.all([
+  countPosts('news'),
   countPosts('announcement'),
   countPosts('interview'),
   countDocs('lecture'),
@@ -19,7 +21,8 @@ const [announcements, interviews, lectures, resources, albums, products] = await
 ]);
 
 const cards = [
-  { href: '/admin/announcements', label: '活動公告', n: announcements, unit: '篇' },
+  { href: '/admin/announcements?section=news', label: '最新消息', n: news, unit: '篇' },
+  { href: '/admin/announcements?section=announcements', label: '活動公告', n: announcements, unit: '篇' },
   { href: '/admin/interviews', label: '系友訪談', n: interviews, unit: '篇' },
   { href: '/admin/lectures', label: '系友演講', n: lectures, unit: '份' },
   { href: '/admin/gallery', label: '精彩點滴', n: albums, unit: '本相簿' },

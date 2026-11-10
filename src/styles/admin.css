@@ -91,6 +91,34 @@
   font-size: var(--fs-sm);
 }
 
+/* 列表篩選（例如公告與消息：全部／活動公告／最新消息） */
+.filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+.filter a {
+  padding: var(--space-1) var(--space-4);
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  color: var(--c-ink-soft);
+  font-size: var(--fs-sm);
+  text-decoration: none;
+}
+.filter a:hover {
+  color: var(--c-ink);
+}
+.filter a[aria-current='page'] {
+  background: var(--c-ink);
+  border-color: var(--c-ink);
+  color: var(--c-bg);
+}
+.table__section {
+  color: var(--c-ink-soft);
+  white-space: nowrap;
+}
+
 /* 按鈕補充（.btn 定義於 global.css） */
 .btn:disabled {
   opacity: 0.5;
@@ -269,6 +297,9 @@
   align-items: start;
   margin: var(--space-6) 0;
 }
+.editor__meta--section {
+  grid-template-columns: auto auto auto 1fr;
+}
 .field {
   display: grid;
   gap: var(--space-1);
@@ -282,6 +313,7 @@
 .field input[type='date'],
 .field input[type='text'],
 .field input[type='number'],
+.field select,
 .field textarea {
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--c-line);

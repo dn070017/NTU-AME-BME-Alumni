@@ -2,6 +2,7 @@ export const SITE_NAME = '中華民國臺灣大學生機農機系友會';
 
 export const NAV_ITEMS = [
   { href: '/', label: '首頁' },
+  { href: '/news', label: '最新消息' },
   { href: '/announcements', label: '活動公告' },
   { href: '/lectures', label: '系友演講' },
   { href: '/interviews', label: '系友訪談' },

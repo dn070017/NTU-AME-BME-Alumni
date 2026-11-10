@@ -1,21 +1,22 @@
 ---
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import Admin from '../../../layouts/Admin.astro';
 import PostEditor from '../../../components/admin/PostEditor';
 import { db, schema } from '../../../db';
 import { parseId } from '../../../lib/api';
 import { isoDate } from '../../../lib/format';
-import { isPostSection, POST_SECTIONS } from '../../../lib/sections';
+import { groupOptions, isPostAdminGroup, POST_ADMIN_GROUPS } from '../../../lib/sections';
 
-const { section } = Astro.params;
+const { section: group } = Astro.params;
 const id = parseId(Astro.params.id);
-if (!isPostSection(section) || !id) return Astro.rewrite('/404');
-const { type, label } = POST_SECTIONS[section];
+if (!isPostAdminGroup(group) || !id) return Astro.rewrite('/404');
+const { label } = POST_ADMIN_GROUPS[group];
+const options = groupOptions(group);
 
 const [row] = await db
   .select()
   .from(schema.posts)
-  .where(and(eq(schema.posts.id, id), eq(schema.posts.type, type)))
+  .where(and(eq(schema.posts.id, id), inArray(schema.posts.type, options.map((o) => o.type))))
   .limit(1);
 if (!row) return Astro.rewrite('/404');
 
@@ -29,5 +30,5 @@ const post = {
 };
 ---
 <Admin title={row.title}>
-  <PostEditor client:only="react" section={section} sectionLabel={label} type={type} post={post} />
+  <PostEditor client:only="react" group={group} groupLabel={label} options={options} type={row.type} post={post} />
 </Admin>
