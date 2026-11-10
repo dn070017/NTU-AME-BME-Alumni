@@ -7,7 +7,9 @@
 文字向左對齊
 中華民國臺灣大學生機農機系友會為依法設立、非以營利為之公益性社會團體，以整合各地區系友力量，促進系友進行事業合作與文化交流，透過互助精神，凝聚向心力，推展學術及母系發展，進而回饋母校及社會為宗旨。
  完整章程請參閱以下[附件](./assets/8f15d9dc-aecb-4b2a-9b7c-d7444a8c46b5.pdf)
-* 系友會會費繳交連結：https://a.ecpay.tw/aSDD
+* 系友會會費繳交：按鈕點下後開啟 modal，列出兩個藍新繳費項目（皆於新分頁開啟）
+    * 新會員入會費與年費（價格已包含入會費與該年年費，不需重複繳交年費）：https://core.newebpay.com/EPG/ntuamebimealumni/V3huVx
+    * 舊會員續繳年費：https://core.newebpay.com/EPG/ntuamebimealumni/3FVOPw
 
 右邊的區塊放四個卡片 (2x2 Layout)
 1. 增進系友與母系之聯繫、互助與交流
